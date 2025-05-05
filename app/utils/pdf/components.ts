@@ -76,7 +76,7 @@ export function addCompactHeader(pdf: jsPDF, menuData: MenuData, pageNum: number
  */
 export function addLegend(pdf: jsPDF, yPos: number, isCompact: boolean = false, dryRun: boolean = false): number {
 
-    const iconTypes = ['must', 'like', 'maybe', 'talk', 'off-limit'];
+    const iconTypes = ['must', 'like', 'maybe', 'talk', 'prefer-not', 'off-limit'];
     
     // Increased padding for more room around the legend items
     const vertPadding = isCompact ? 5 : 6;

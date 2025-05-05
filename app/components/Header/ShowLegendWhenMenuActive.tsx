@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
-import { IconMust, IconLike, IconMaybe, IconOffLimit } from "../icons";
+import { IconMust, IconLike, IconMaybe, IconPreferNot, IconOffLimit } from "../icons";
 import IconTalk from "../icons/IconTalk";
 
 export default function ShowLegendWhenMenuActive() {
@@ -66,6 +66,10 @@ export default function ShowLegendWhenMenuActive() {
         <div className="flex items-center whitespace-nowrap">
           <IconMaybe className="w-5 h-5" />
           <span className="ml-1.5 text-[rgba(79,139,149,1)] dark:text-amber-600">MAYBE</span>
+        </div>
+        <div className="flex items-center whitespace-nowrap">
+          <IconPreferNot className="w-5 h-5" />
+          <span className="ml-1.5 text-[rgba(79,139,149,1)] dark:text-orange-400">PREFER NOT</span>
         </div>
         <div className="flex items-center whitespace-nowrap">
           <IconOffLimit className="w-5 h-5" />

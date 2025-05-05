@@ -21,6 +21,7 @@ export interface ColorTypes {
   must: ColorConfig;
   like: ColorConfig;
   maybe: ColorConfig;
+  'prefer-not': ColorConfig;
   'off-limit': ColorConfig;
   talk: ColorConfig;
   notSet: ColorConfig;

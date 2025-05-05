@@ -76,6 +76,15 @@ export function drawIcon(pdf: jsPDF, iconType: string | null, x: number, y: numb
       pdf.line(centerX, centerY + 5 * scale, centerX, centerY + 5.01 * scale);
       break;
       
+    case 'prefer-not':
+      pdf.setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
+      pdf.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+      pdf.circle(centerX, centerY, 9 * scale, 'FD');
+      
+      // Dash
+      pdf.line(centerX - 4 * scale, centerY, centerX + 4 * scale, centerY);
+      break;
+      
     case 'off-limit':
       pdf.setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
       pdf.setFillColor(bgColor[0], bgColor[1], bgColor[2]);

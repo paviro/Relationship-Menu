@@ -26,10 +26,16 @@ export const COLORS: ColorTypes = {
     label: "Would like"
   },
   maybe: {
-    bg: [255, 246, 230],
-    border: [233, 180, 103],
-    marker: [255, 246, 230],
+    bg: [253, 243, 222],
+    border: [247, 206, 19],
+    marker: [253, 243, 222],
     label: "Maybe"
+  },
+  'prefer-not': {
+    bg: [255, 236, 217],
+    border: [226, 166, 113],
+    marker: [255, 236, 217],
+    label: "Prefer not"
   },
   'off-limit': {
     bg: [255, 233, 233],
