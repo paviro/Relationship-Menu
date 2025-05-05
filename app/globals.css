@@ -458,3 +458,99 @@ button.flex.items-center span {
     gap: 10px;
   }
 }
+
+/* Dropdown legend animation */
+
+@keyframes fadeInSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInBlur {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOutSlideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes fadeOutBlur {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.legend-overlay-enter {
+  animation: fadeInBlur 0.25s ease-out forwards;
+}
+
+.legend-overlay-exit {
+  animation: fadeOutBlur 0.25s ease-out forwards;
+}
+
+.legend-item {
+  animation-name: fadeInSlideDown;
+  animation-duration: 0.25s;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+.legend-item-exit {
+  animation-name: fadeOutSlideUp;
+  animation-duration: 0.2s;
+  animation-fill-mode: both;
+  animation-timing-function: ease-in;
+}
+
+.legend-item:nth-child(1) { animation-delay: 0ms; }
+.legend-item:nth-child(2) { animation-delay: 60ms; }
+.legend-item:nth-child(3) { animation-delay: 120ms; }
+.legend-item:nth-child(4) { animation-delay: 180ms; }
+.legend-item:nth-child(5) { animation-delay: 240ms; }
+.legend-item:nth-child(6) { animation-delay: 300ms; }
+
+.legend-item-exit:nth-child(6) { animation-delay: 0ms; }
+.legend-item-exit:nth-child(5) { animation-delay: 50ms; }
+.legend-item-exit:nth-child(4) { animation-delay: 100ms; }
+.legend-item-exit:nth-child(3) { animation-delay: 150ms; }
+.legend-item-exit:nth-child(2) { animation-delay: 200ms; }
+.legend-item-exit:nth-child(1) { animation-delay: 250ms; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.close-button-enter {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.close-button-exit {
+  animation: fadeOut 0.3s ease-out forwards;
+}
