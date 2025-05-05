@@ -15,7 +15,7 @@ export const ICON_OPTIONS = [
   { value: 'must', label: 'Must have', icon: IconMust, bgColor: 'bg-[#DEF0FF] dark:bg-[rgba(59,130,246,0.5)]' },
   { value: 'like', label: 'Would like', icon: IconLike, bgColor: 'bg-[#E6F7EC] dark:bg-[rgba(34,197,94,0.5)]' },
   { value: 'maybe', label: 'Maybe', icon: IconMaybe, bgColor: 'bg-[#FFF6C5] dark:bg-[rgba(245,158,11,0.5)]' },
-  { value: 'prefer-not', label: 'Prefer not', icon: IconPreferNot, bgColor: 'bg-[#FDEBDB] dark:bg-[rgb(250,128,114,0.5)]' },
+  { value: 'prefer-not', label: 'Prefer not', icon: IconPreferNot, bgColor: 'bg-[#E2E8F0] dark:bg-[rgba(100,116,139,0.5)]' },
   { value: 'off-limit', label: 'Off limits', icon: IconOffLimit, bgColor: 'bg-[#FFEBEB] dark:bg-[rgba(239,68,68,0.5)]' },
   { value: 'talk', label: 'Conversation', icon: IconTalk, bgColor: 'bg-[#F0EDFF] dark:bg-[rgba(139,92,246,0.5)]' },
   { value: null, label: 'Not set', icon: IconNotSet, bgColor: 'bg-[#F5F5F5] dark:bg-[#374151]' }

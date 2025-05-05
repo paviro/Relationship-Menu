@@ -32,9 +32,9 @@ export const COLORS: ColorTypes = {
     label: "Maybe"
   },
   'prefer-not': {
-    bg: [255, 236, 217],
-    border: [226, 166, 113],
-    marker: [255, 236, 217],
+    bg: [226, 232, 240],
+    border: [148, 163, 184],
+    marker: [226, 232, 240],
     label: "Prefer not"
   },
   'off-limit': {

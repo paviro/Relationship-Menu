@@ -165,7 +165,7 @@ export default function ShowLegendWhenMenuActive({ showAsOverlay = false, onClos
       </div>
       <div className="flex items-center">
         <IconPreferNot className="w-5 h-5 flex-shrink-0" />
-        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-orange-400">PREFER NOT</span>
+        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-slate-400">PREFER NOT</span>
       </div>
       <div className="flex items-center">
         <IconOffLimit className="w-5 h-5 flex-shrink-0" />

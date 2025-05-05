@@ -16,7 +16,7 @@ export function getItemSpanClasses(iconType: string | null | undefined) {
     case 'maybe':
       return `${baseClasses} [background-image:linear-gradient(-100deg,rgba(227,210,100,0.2),rgba(255,230,107,0.5)_95%,rgba(227,210,100,0.1))] dark:[background-image:linear-gradient(-100deg,rgba(245,158,11,0.3),rgba(245,158,11,0.7)_95%,rgba(245,158,11,0.3))]`;
     case 'prefer-not':
-      return `${baseClasses} [background-image:linear-gradient(-100deg,rgba(202,159,122,0.2),rgba(239,171,111,0.5)_95%,rgba(202,159,122,0.1))] dark:[background-image:linear-gradient(-100deg,rgba(250,128,114,0.3),rgba(250,128,114,0.7)_95%,rgba(250,128,114,0.3))]`;
+      return `${baseClasses} [background-image:linear-gradient(-100deg,rgba(148,163,184,0.2),rgba(148,163,184,0.5)_95%,rgba(148,163,184,0.1))] dark:[background-image:linear-gradient(-100deg,rgba(100,116,139,0.3),rgba(100,116,139,0.7)_95%,rgba(100,116,139,0.3))]`;
     case 'off-limit':
       return `${baseClasses} [background-image:linear-gradient(-100deg,rgba(197,110,11,0.2),rgba(210,102,102,0.5)_95%,rgba(197,110,11,0.1))] dark:[background-image:linear-gradient(-100deg,rgba(239,68,68,0.3),rgba(239,68,68,0.7)_95%,rgba(239,68,68,0.3))]`;
     default:
