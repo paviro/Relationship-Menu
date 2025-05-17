@@ -3,6 +3,7 @@ export type MenuItem = {
   name: string;
   note?: string | null;
   icon?: string | null;
+  help?: string | null;
 };
 
 // Define menu category type

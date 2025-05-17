@@ -12,10 +12,13 @@ interface MenuItemProps {
   mode: MenuMode;
   isEditing?: boolean;
   activeIconPicker: { catIndex: number, itemIndex: number } | null;
+  activeHelpItem: { catIndex: number, itemIndex: number } | null;
   onToggleIconPicker: (catIndex: number, itemIndex: number) => void;
+  onToggleHelp?: (catIndex: number, itemIndex: number) => void;
   onIconChange: (catIndex: number, itemIndex: number, newIcon: string | null) => void;
   onItemNameChange: (catIndex: number, itemIndex: number, newName: string) => void;
   onNoteChange: (catIndex: number, itemIndex: number, newNote: string) => void;
+  onHelpChange?: (catIndex: number, itemIndex: number, newHelp: string) => void;
   onDeleteItem: (catIndex: number, itemIndex: number) => void;
   onMoveItemUp?: (catIndex: number, itemIndex: number) => void;
   onMoveItemDown?: (catIndex: number, itemIndex: number) => void;
@@ -29,10 +32,13 @@ export function MenuItem({
   itemIndex,
   mode,
   activeIconPicker,
+  activeHelpItem,
   onToggleIconPicker,
+  onToggleHelp,
   onIconChange,
   onItemNameChange,
   onNoteChange,
+  onHelpChange,
   onDeleteItem,
   onMoveItemUp,
   onMoveItemDown,
@@ -61,6 +67,7 @@ export function MenuItem({
           onIconChange={onIconChange}
           onItemNameChange={onItemNameChange}
           onNoteChange={onNoteChange}
+          onHelpChange={onHelpChange}
           onDeleteItem={onDeleteItem}
           onMoveItemUp={onMoveItemUp}
           onMoveItemDown={onMoveItemDown}
@@ -78,7 +85,9 @@ export function MenuItem({
           itemIndex={itemIndex}
           item={item}
           activeIconPicker={activeIconPicker}
+          activeHelpItem={activeHelpItem}
           onToggleIconPicker={onToggleIconPicker}
+          onToggleHelp={onToggleHelp}
           onIconChange={onIconChange}
           onNoteChange={onNoteChange}
           autoResizeTextarea={autoResizeTextarea}

@@ -37,7 +37,8 @@ export function createItemHandlers({
     updatedData.menu[catIndex].items.push({
       name: "New Item",
       icon: null,
-      note: null
+      note: null,
+      help: null
     });
     updatedData.last_update = new Date().toISOString();
     setEditedData(updatedData);

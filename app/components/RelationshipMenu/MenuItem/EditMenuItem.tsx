@@ -12,6 +12,7 @@ interface EditMenuItemProps {
   onIconChange: (catIndex: number, itemIndex: number, newIcon: string | null) => void;
   onItemNameChange: (catIndex: number, itemIndex: number, newName: string) => void;
   onNoteChange: (catIndex: number, itemIndex: number, newNote: string) => void;
+  onHelpChange?: (catIndex: number, itemIndex: number, newHelp: string) => void;
   onDeleteItem: (catIndex: number, itemIndex: number) => void;
   onMoveItemUp?: (catIndex: number, itemIndex: number) => void;
   onMoveItemDown?: (catIndex: number, itemIndex: number) => void;
@@ -28,6 +29,7 @@ export function EditMenuItem({
   onIconChange,
   onItemNameChange,
   onNoteChange,
+  onHelpChange,
   onDeleteItem,
   onMoveItemUp,
   onMoveItemDown,
@@ -37,13 +39,17 @@ export function EditMenuItem({
   // Convert item.icon to string | null to fix type issues
   const iconType = item.icon === undefined ? null : item.icon;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const helpTextareaRef = useRef<HTMLTextAreaElement>(null);
   
   // Effect to resize textarea when the component mounts with existing content
   useEffect(() => {
     if (textareaRef.current && item.note) {
       autoResizeTextarea(textareaRef.current);
     }
-  }, [autoResizeTextarea, item.note]);
+    if (helpTextareaRef.current && item.help) {
+      autoResizeTextarea(helpTextareaRef.current);
+    }
+  }, [autoResizeTextarea, item.note, item.help]);
 
   return (
     <>
@@ -77,18 +83,43 @@ export function EditMenuItem({
       </div>
       
       <div className="mt-2">
-        <textarea 
-          ref={textareaRef}
-          value={item.note || ''} 
-          onChange={(e) => {
-            onNoteChange(catIndex, itemIndex, e.target.value);
-            autoResizeTextarea(e.target as HTMLTextAreaElement);
-          }}
-          onInput={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
-          className="w-full p-2 text-sm rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-50 focus:outline-none focus:ring-1 focus:ring-[var(--main-text-color)] focus:border-[var(--main-text-color)]"
-          placeholder="Add a note..."
-          style={{ minHeight: '80px', resize: 'none', overflow: 'hidden' }}
-        />
+        <div className="mb-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Notes <span className="text-gray-500 dark:text-gray-400 font-normal">(on the item)</span>
+          </label>
+          <textarea 
+            ref={textareaRef}
+            value={item.note || ''} 
+            onChange={(e) => {
+              onNoteChange(catIndex, itemIndex, e.target.value);
+              autoResizeTextarea(e.target as HTMLTextAreaElement);
+            }}
+            onInput={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
+            className="w-full p-2 text-sm rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-50 focus:outline-none focus:ring-1 focus:ring-[var(--main-text-color)] focus:border-[var(--main-text-color)]"
+            placeholder="Add a note..."
+            style={{ minHeight: '80px', resize: 'none', overflow: 'hidden' }}
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Help Text <span className="text-gray-500 dark:text-gray-400 font-normal">(shown on request in fill mode)</span>
+          </label>
+          <textarea 
+            ref={helpTextareaRef}
+            value={item.help || ''} 
+            onChange={(e) => {
+              if (onHelpChange) {
+                onHelpChange(catIndex, itemIndex, e.target.value);
+              }
+              autoResizeTextarea(e.target as HTMLTextAreaElement);
+            }}
+            onInput={(e) => autoResizeTextarea(e.target as HTMLTextAreaElement)}
+            className="w-full p-2 text-sm rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-50 focus:outline-none focus:ring-1 focus:ring-[var(--main-text-color)] focus:border-[var(--main-text-color)]"
+            placeholder="Add help text to explain this item..."
+            style={{ minHeight: '80px', resize: 'none', overflow: 'hidden' }}
+          />
+        </div>
         
         <div className="mt-4 p-2 sm:p-3 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 flex flex-row justify-between items-center gap-2">
           <div className="flex items-center">

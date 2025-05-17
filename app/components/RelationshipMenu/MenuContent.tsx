@@ -8,11 +8,14 @@ interface MenuContentProps {
   menu: MenuCategory[];
   mode: MenuMode;
   activeIconPicker: { catIndex: number, itemIndex: number } | null;
+  activeHelpItem: { catIndex: number, itemIndex: number } | null;
   onToggleIconPicker: (catIndex: number, itemIndex: number) => void;
+  onToggleHelp: (catIndex: number, itemIndex: number) => void;
   onIconChange: (catIndex: number, itemIndex: number, newIcon: string | null) => void;
   onCategoryNameChange: (catIndex: number, newName: string) => void;
   onItemNameChange: (catIndex: number, itemIndex: number, newName: string) => void;
   onNoteChange: (catIndex: number, itemIndex: number, newNote: string) => void;
+  onHelpChange: (catIndex: number, itemIndex: number, newHelp: string) => void;
   onDeleteItem: (catIndex: number, itemIndex: number) => void;
   onAddItem: (catIndex: number) => void;
   onAddSection: () => void;
@@ -28,11 +31,14 @@ export function MenuContent({
   menu,
   mode,
   activeIconPicker,
+  activeHelpItem,
   onToggleIconPicker,
+  onToggleHelp,
   onIconChange,
   onCategoryNameChange,
   onItemNameChange,
   onNoteChange,
+  onHelpChange,
   onDeleteItem,
   onAddItem,
   onAddSection,
@@ -81,10 +87,13 @@ export function MenuContent({
                   item={item}
                   mode={mode}
                   activeIconPicker={activeIconPicker}
+                  activeHelpItem={activeHelpItem}
                   onToggleIconPicker={onToggleIconPicker}
+                  onToggleHelp={onToggleHelp}
                   onIconChange={onIconChange}
                   onItemNameChange={onItemNameChange}
                   onNoteChange={onNoteChange}
+                  onHelpChange={onHelpChange}
                   onDeleteItem={onDeleteItem}
                   onMoveItemUp={onMoveItemUp}
                   onMoveItemDown={onMoveItemDown}

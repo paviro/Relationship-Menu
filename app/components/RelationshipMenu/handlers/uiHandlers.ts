@@ -6,6 +6,8 @@ export type UIHandlerProps = {
   setMode: (mode: MenuMode) => void;
   setActiveIconPicker: (picker: { catIndex: number; itemIndex: number } | null) => void;
   activeIconPicker: { catIndex: number; itemIndex: number } | null;
+  setActiveHelpItem: (item: { catIndex: number; itemIndex: number } | null) => void;
+  activeHelpItem: { catIndex: number; itemIndex: number } | null;
 };
 
 /**
@@ -17,6 +19,8 @@ export function createUIHandlers({
   setMode,
   setActiveIconPicker,
   activeIconPicker,
+  setActiveHelpItem,
+  activeHelpItem,
 }: UIHandlerProps) {
   /**
    * Change the editing mode
@@ -152,9 +156,25 @@ export function createUIHandlers({
     }
   };
 
+  /**
+   * Toggle help text visibility for an item
+   */
+  const toggleHelp = (catIndex: number, itemIndex: number) => {
+    if (activeHelpItem && 
+        activeHelpItem.catIndex === catIndex && 
+        activeHelpItem.itemIndex === itemIndex) {
+      // If clicking on the already active help item, close it
+      setActiveHelpItem(null);
+    } else {
+      // Otherwise, set this as the active help item (closing any other)
+      setActiveHelpItem({ catIndex, itemIndex });
+    }
+  };
+
   return {
     handleModeChange,
     toggleIconPicker,
-    autoResizeTextarea
+    autoResizeTextarea,
+    toggleHelp
   };
 } 

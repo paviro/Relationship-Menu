@@ -369,20 +369,8 @@ button span,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-right: 10px;
+  margin-right: 12px;
   flex-shrink: 0;
-}
-
-@media screen and (min-width: 768px) {
-  .icon-container {
-    margin-right: 12px;
-  }
-}
-
-@media screen and (min-width: 1200px) {
-  .icon-container {
-    margin-right: 16px;
-  }
 }
 
 .absolute button span {

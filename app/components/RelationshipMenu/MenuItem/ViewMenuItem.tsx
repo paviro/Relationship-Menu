@@ -11,6 +11,9 @@ export function ViewMenuItem({ item }: ViewMenuItemProps) {
   // Get the icon label using the utility function
   const iconLabel = getIconLabel(item.icon);
   
+  // Determine if icon is set
+  const hasIcon = !!item.icon;
+  
   return (
     <>
       <div className="item-name font-bold flex items-center text-gray-900 dark:text-gray-50 max-sm:items-start">
@@ -21,7 +24,7 @@ export function ViewMenuItem({ item }: ViewMenuItemProps) {
         <span className="sr-only">, {iconLabel}</span>
       </div>
       {item.note && (
-        <div className="mt-1.5 ml-9 md:ml-10 xl:ml-10 text-gray-700 dark:text-gray-50 text-[0.9em] whitespace-pre-line break-words max-sm:mt-1 max-sm:ml-8" aria-label={`Note: ${item.note}`}>
+        <div className={`${hasIcon ? 'mt-1.5' : 'mt-0.5'} ${hasIcon ? 'ml-9' : 'ml-8'} text-gray-700 dark:text-gray-50 text-[0.9em] whitespace-pre-line break-words max-sm:mt-1 max-sm:ml-8`} aria-label={`Note: ${item.note}`}>
           {item.note}
         </div>
       )}

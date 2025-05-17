@@ -23,6 +23,7 @@ export function RelationshipMenu({ menuData, onSave, initialMode = 'view' }: Rel
   const [mode, setMode] = useState<MenuMode>(initialMode);
   const [editedData, setEditedData] = useState<MenuData>({ ...menuData });
   const [activeIconPicker, setActiveIconPicker] = useState<{catIndex: number, itemIndex: number} | null>(null);
+  const [activeHelpItem, setActiveHelpItem] = useState<{catIndex: number, itemIndex: number} | null>(null);
   
   // Get the toast utility from context
   const { showToast } = useToast();
@@ -55,17 +56,21 @@ export function RelationshipMenu({ menuData, onSave, initialMode = 'view' }: Rel
   const {
     handleModeChange,
     toggleIconPicker,
+    toggleHelp
   } = useMemo(() => createUIHandlers({
     menuData,
     setEditedData,
     setMode,
     setActiveIconPicker,
     activeIconPicker,
-  }), [menuData, activeIconPicker]);
+    setActiveHelpItem,
+    activeHelpItem
+  }), [menuData, activeIconPicker, activeHelpItem]);
 
   // Create data handlers
   const {
     handleNoteChange,
+    handleHelpChange,
     handleIconChange,
     handleCategoryNameChange,
     handlePersonNameChange,
@@ -140,11 +145,14 @@ export function RelationshipMenu({ menuData, onSave, initialMode = 'view' }: Rel
         menu={menu}
         mode={mode}
         activeIconPicker={activeIconPicker}
+        activeHelpItem={activeHelpItem}
         onToggleIconPicker={toggleIconPicker}
+        onToggleHelp={toggleHelp}
         onIconChange={handleIconChange}
         onCategoryNameChange={handleCategoryNameChange}
         onItemNameChange={handleItemNameChange}
         onNoteChange={handleNoteChange}
+        onHelpChange={handleHelpChange}
         onDeleteItem={handleDeleteItem}
         onAddItem={handleAddItem}
         onAddSection={handleAddSection}

@@ -9,7 +9,9 @@ interface FillMenuItemProps {
   itemIndex: number;
   item: MenuItem;
   activeIconPicker: { catIndex: number, itemIndex: number } | null;
+  activeHelpItem: { catIndex: number, itemIndex: number } | null;
   onToggleIconPicker: (catIndex: number, itemIndex: number) => void;
+  onToggleHelp?: (catIndex: number, itemIndex: number) => void;
   onIconChange: (catIndex: number, itemIndex: number, newIcon: string | null) => void;
   onNoteChange: (catIndex: number, itemIndex: number, newNote: string) => void;
   autoResizeTextarea: (element: HTMLTextAreaElement) => void;
@@ -20,13 +22,20 @@ export function FillMenuItem({
   itemIndex,
   item,
   activeIconPicker,
+  activeHelpItem,
   onToggleIconPicker,
+  onToggleHelp,
   onIconChange,
   onNoteChange,
   autoResizeTextarea
 }: FillMenuItemProps) {
   const [isNoteExpanded, setIsNoteExpanded] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Determine if this item's help is active
+  const isHelpActive = activeHelpItem !== null && 
+                      activeHelpItem.catIndex === catIndex && 
+                      activeHelpItem.itemIndex === itemIndex;
   
   // Effect to resize textarea when entering edit mode with existing content
   useEffect(() => {
@@ -37,6 +46,9 @@ export function FillMenuItem({
 
   // Convert item.icon to string | null to fix type issues
   const iconType = item.icon === undefined ? null : item.icon;
+  
+  // Determine if icon is set
+  const hasIcon = !!iconType;
 
   // Render icon button for fill mode
   const renderIconButton = () => {
@@ -83,6 +95,14 @@ export function FillMenuItem({
     setIsNoteExpanded(true);
   };
 
+  // Handle help button click
+  const handleToggleHelp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onToggleHelp) {
+      onToggleHelp(catIndex, itemIndex);
+    }
+  };
+
   // Render the note editor for fill mode
   const renderNoteEditor = () => {
     if (isNoteExpanded) {
@@ -114,12 +134,17 @@ export function FillMenuItem({
         )) : 
         "Add a note...";
         
-      // Placeholder text that expands when clicked
+      // Note text that expands when clicked
       return (
         <div 
           onClick={handleExpandNote}
           className={`text-gray-800 dark:text-gray-50 hover:text-gray-900 dark:hover:text-white cursor-text text-sm whitespace-pre-line ${!item.note ? 'text-gray-500 dark:text-gray-400' : ''}`}
-          style={{ marginTop: '-0.8rem', marginLeft: '5.6rem' }}
+          style={{ 
+            transform: hasIcon ? 'translateY(-0.6rem)' : 'translateY(-1rem)',
+            marginBottom: hasIcon ? '-0.6rem' : '-1rem', 
+            paddingLeft: isHelpActive ? '0' : hasIcon ? '5.45rem' : '5.2rem',
+            paddingTop: isHelpActive ? '0.8rem' : '0'
+          }}
         >
           {formattedNote}
         </div>
@@ -136,8 +161,24 @@ export function FillMenuItem({
             {renderIconButton()}
             <div className="flex-grow flex items-center pl-3">
               <span className={`font-bold ${getItemSpanClasses(item.icon)}`}>{item.name}</span>
+              {item.help && (
+                <button 
+                  onClick={handleToggleHelp}
+                  className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-bold hover:bg-[var(--main-bg-color)] dark:hover:bg-[var(--main-bg-color)] hover:text-white transition-colors"
+                  aria-label={isHelpActive ? "Hide help" : "Show help"}
+                >
+                  ?
+                </button>
+              )}
             </div>
           </div>
+          
+          {/* Help text section */}
+          {isHelpActive && item.help && (
+            <div className="mt-1 mb-2 px-4 py-3 bg-[var(--main-bg-color)]/10 dark:bg-[var(--main-bg-color)]/20 border-l-2 border-[var(--main-text-color)] dark:border-[var(--main-text-color)] text-sm text-gray-700 dark:text-gray-200 rounded-r-md shadow-sm w-full">
+              {item.help}
+            </div>
+          )}
           
           <IconPicker
             selectedIcon={iconType}

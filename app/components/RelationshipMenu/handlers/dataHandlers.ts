@@ -31,6 +31,17 @@ export function createDataHandlers({
   };
 
   /**
+   * Update help text for a menu item
+   */
+  const handleHelpChange = (catIndex: number, itemIndex: number, newHelp: string) => {
+    const updatedData = { ...editedData };
+    updatedData.menu[catIndex].items[itemIndex].help = newHelp || null;
+    updatedData.last_update = new Date().toISOString();
+    setEditedData(updatedData);
+    onSave(updatedData);
+  };
+
+  /**
    * Update an icon for a menu item
    */
   const handleIconChange = (catIndex: number, itemIndex: number, newIcon: string | null) => {
@@ -107,6 +118,7 @@ export function createDataHandlers({
 
   return {
     handleNoteChange,
+    handleHelpChange,
     handleIconChange,
     handleCategoryNameChange,
     handlePersonNameChange,
