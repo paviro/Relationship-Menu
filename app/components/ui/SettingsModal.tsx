@@ -171,13 +171,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     value={option.value}
                     checked={preferences.colorMode === option.value}
                     onChange={() => handleColorModeChange(option.value)}
+                    aria-describedby={`colorMode-${option.value}-desc`}
                     className="mt-1 h-4 w-4 text-[var(--main-text-color)] border-gray-300 focus:ring-[var(--main-text-color)]"
                   />
                   <div className="ml-3">
                     <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
                       {option.label}
                     </span>
-                    <span className="block text-xs text-gray-500 dark:text-gray-400">
+                    <span id={`colorMode-${option.value}-desc`} className="block text-xs text-gray-500 dark:text-gray-400">
                       {option.description}
                     </span>
                   </div>
@@ -207,13 +208,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     value={option.value}
                     checked={preferences.vision === option.value}
                     onChange={() => handleVisionChange(option.value)}
+                    aria-describedby={`vision-${option.value}-desc`}
                     className="mt-1 h-4 w-4 text-[var(--main-text-color)] border-gray-300 focus:ring-[var(--main-text-color)]"
                   />
                   <div className="ml-3">
                     <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
                       {option.label}
                     </span>
-                    <span className="block text-xs text-gray-500 dark:text-gray-400">
+                    <span id={`vision-${option.value}-desc`} className="block text-xs text-gray-500 dark:text-gray-400">
                       {option.description}
                     </span>
                   </div>
@@ -238,7 +240,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
                   Increase contrast
                 </span>
-                <span className="block text-xs text-gray-500 dark:text-gray-400">
+                <span id="contrast-desc" className="block text-xs text-gray-500 dark:text-gray-400">
                   Enhanced visibility for text and UI elements
                 </span>
               </div>
@@ -246,9 +248,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 type="button"
                 role="switch"
                 aria-checked={preferences.contrast === 'high'}
+                aria-label="Increase contrast"
+                aria-describedby="contrast-desc"
                 onClick={() => handleContrastChange(preferences.contrast === 'high' ? 'normal' : 'high')}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--main-text-color)] focus:ring-offset-2 ${
-                  preferences.contrast === 'high' ? 'bg-[var(--main-text-color)]' : 'bg-gray-300 dark:bg-gray-600'
+                className={`settings-switch relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--main-text-color)] focus:ring-offset-2 ${
+                  preferences.contrast === 'high' ? 'bg-[var(--main-text-color)]' : 'bg-gray-300'
                 }`}
               >
                 <span

@@ -115,6 +115,10 @@ export function systemPrefersHighContrast(): boolean {
     return false;
   }
 
-  // prefers-contrast: more is the CSS Level 5 standard
-  return window.matchMedia('(prefers-contrast: more)').matches;
+  // prefers-contrast: more is standardized in CSS Media Queries Level 5.
+  // Some browsers also support prefers-contrast: high from earlier drafts, so check both.
+  return (
+    window.matchMedia('(prefers-contrast: more)').matches ||
+    window.matchMedia('(prefers-contrast: high)').matches
+  );
 }

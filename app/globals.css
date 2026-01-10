@@ -613,6 +613,22 @@ button.flex.items-center span {
 }
 
 /* ============================================
+   REDUCED MOTION SUPPORT
+   Respect user preference for reduced motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
    ANIMATIONS
    ============================================ */
 
@@ -708,4 +724,13 @@ button.flex.items-center span {
 
 .close-button-exit {
   animation: fadeOut 0.3s ease-out forwards;
+}
+
+/* ============================================
+   SETTINGS MODAL THEME SUPPORT
+   ============================================ */
+
+/* Settings switch background in dark mode */
+[data-color-mode="dark"] .settings-switch:not([aria-checked="true"]) {
+  background-color: rgb(75 85 99); /* gray-600 */
 }
