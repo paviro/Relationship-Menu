@@ -137,10 +137,10 @@
   --border-focus: rgba(255, 255, 255, 0.8);
 }
 
-/* High contrast focus rings - more visible */
+/* High contrast focus rings - more visible for users with low vision */
 [data-contrast="high"] *:focus-visible {
   outline: 3px solid var(--border-focus) !important;
-  outline-offset: 2px;
+  outline-offset: 4px;
 }
 
 /* High contrast links get underlines */

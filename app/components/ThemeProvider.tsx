@@ -8,6 +8,7 @@ import {
   resolveColorMode,
   systemPrefersHighContrast,
   DEFAULT_THEME,
+  THEME_STORAGE_KEY,
 } from '../utils/themeStorage';
 
 type ThemeContextValue = {
@@ -24,6 +25,23 @@ export function useTheme() {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
+}
+
+/**
+ * Checks if user has explicitly saved a contrast preference in localStorage.
+ * Returns false if localStorage is empty, corrupted, or missing the contrast field.
+ */
+function hasExplicitContrastPreference(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    const rawStored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (!rawStored) return false;
+    const parsed = JSON.parse(rawStored);
+    return parsed.contrast !== undefined;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -63,23 +81,9 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
   useEffect(() => {
     const stored = getThemePreferences();
 
-    // Check if user has explicitly saved contrast preference
-    let hasExplicitContrast = false;
-    try {
-      const rawStored = typeof window !== 'undefined'
-        ? localStorage.getItem('relationshipMenu.theme')
-        : null;
-      if (rawStored) {
-        const parsed = JSON.parse(rawStored);
-        hasExplicitContrast = parsed.contrast !== undefined;
-      }
-    } catch {
-      // Ignore parse errors for corrupted data
-    }
-
     // If no explicit contrast preference, respect system prefers-contrast
     let finalPrefs = stored;
-    if (!hasExplicitContrast && systemPrefersHighContrast()) {
+    if (!hasExplicitContrastPreference() && systemPrefersHighContrast()) {
       finalPrefs = { ...stored, contrast: 'high' };
     }
 
@@ -108,35 +112,30 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
   }, [mounted, preferences]);
 
   // Listen for system prefers-contrast changes
+  // Check both 'more' (CSS Level 5) and 'high' (earlier drafts) for browser compatibility
   useEffect(() => {
     if (!mounted) return;
 
-    const contrastQuery = window.matchMedia('(prefers-contrast: more)');
+    const contrastQueryMore = window.matchMedia('(prefers-contrast: more)');
+    const contrastQueryHigh = window.matchMedia('(prefers-contrast: high)');
 
     const handleContrastChange = () => {
-      // Check if user has explicitly set contrast
-      let hasExplicitContrast = false;
-      try {
-        const rawStored = localStorage.getItem('relationshipMenu.theme');
-        if (rawStored) {
-          const parsed = JSON.parse(rawStored);
-          hasExplicitContrast = parsed.contrast !== undefined;
-        }
-      } catch {
-        // Ignore parse errors for corrupted data
-      }
-
       // Only auto-update if user hasn't explicitly set contrast
-      if (!hasExplicitContrast) {
-        const newContrast = contrastQuery.matches ? 'high' : 'normal';
+      if (!hasExplicitContrastPreference()) {
+        // Use systemPrefersHighContrast for consistent detection logic
+        const newContrast = systemPrefersHighContrast() ? 'high' : 'normal';
         const newPrefs = { ...preferences, contrast: newContrast };
         setPreferencesState(newPrefs);
         applyThemeToDocument(newPrefs);
       }
     };
 
-    contrastQuery.addEventListener('change', handleContrastChange);
-    return () => contrastQuery.removeEventListener('change', handleContrastChange);
+    contrastQueryMore.addEventListener('change', handleContrastChange);
+    contrastQueryHigh.addEventListener('change', handleContrastChange);
+    return () => {
+      contrastQueryMore.removeEventListener('change', handleContrastChange);
+      contrastQueryHigh.removeEventListener('change', handleContrastChange);
+    };
   }, [mounted, preferences]);
 
   // Listen for theme change events triggered elsewhere
