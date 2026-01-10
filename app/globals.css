@@ -31,12 +31,26 @@
   text-decoration: line-through;
 }
 
+/* ============================================
+   THEME SYSTEM
+   Uses data attributes on <html> for theme control:
+   - data-color-mode: "light" | "dark"
+   - data-vision: "default" | "pd" | "tritan"
+   - data-contrast: "normal" | "high"
+   ============================================ */
+
+/* Base light theme variables */
 :root {
   --main-bg-color: rgba(148, 188, 194, 0.9);
   --main-text-color: rgba(79, 139, 149, 1);
   --main-text-color-hover: rgba(63, 115, 123, 1);
   --background: #ffffff;
   --foreground: #111111;
+  --surface: #ffffff;
+  --surface-secondary: #f8fafc;
+  --border-color: rgba(0, 0, 0, 0.07);
+  --border-focus: rgba(79, 139, 149, 0.5);
+  --header-bg: rgba(158, 198, 204, 0.85);
   --font-nunito: 'Nunito', sans-serif;
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.08);
@@ -45,21 +59,131 @@
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
+/* Dark mode via data attribute */
+[data-color-mode="dark"] {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --surface: #1e293b;
+  --surface-secondary: #334155;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --border-focus: rgba(148, 188, 194, 0.5);
+  --main-bg-color: rgba(45, 85, 95, 0.9);
+  --header-bg: rgba(45, 85, 95, 0.85);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+}
+
+/* Fallback for initial load before JS runs - uses system preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-color-mode]) {
+    --background: #0f172a;
+    --foreground: #f1f5f9;
+    --surface: #1e293b;
+    --surface-secondary: #334155;
+    --border-color: rgba(255, 255, 255, 0.05);
+    --border-focus: rgba(148, 188, 194, 0.5);
+    --main-bg-color: rgba(45, 85, 95, 0.9);
+    --header-bg: rgba(45, 85, 95, 0.85);
+    --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* ============================================
+   VISION THEMES
+   pd = Protanopia/Deuteranopia (red-green)
+   tritan = Tritanopia (blue-yellow)
+   ============================================ */
+
+/* Protanopia/Deuteranopia - shifts to blue-orange spectrum */
+[data-vision="pd"] {
+  --main-bg-color: rgba(100, 149, 237, 0.9);
+  --main-text-color: rgba(70, 130, 180, 1);
+  --main-text-color-hover: rgba(55, 100, 145, 1);
+  --header-bg: rgba(100, 149, 237, 0.85);
+}
+
+[data-color-mode="dark"][data-vision="pd"] {
+  --main-bg-color: rgba(65, 105, 165, 0.9);
+  --header-bg: rgba(65, 105, 165, 0.85);
+}
+
+/* Tritanopia - shifts to pink-cyan spectrum */
+[data-vision="tritan"] {
+  --main-bg-color: rgba(199, 146, 182, 0.9);
+  --main-text-color: rgba(165, 105, 145, 1);
+  --main-text-color-hover: rgba(140, 85, 120, 1);
+  --header-bg: rgba(199, 146, 182, 0.85);
+}
+
+[data-color-mode="dark"][data-vision="tritan"] {
+  --main-bg-color: rgba(140, 95, 125, 0.9);
+  --header-bg: rgba(140, 95, 125, 0.85);
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   Increases contrast ratios for better visibility
+   ============================================ */
+
+[data-contrast="high"] {
+  --foreground: #000000;
+  --border-color: rgba(0, 0, 0, 0.25);
+  --border-focus: rgba(0, 0, 0, 0.8);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+}
+
+[data-color-mode="dark"][data-contrast="high"] {
+  --foreground: #ffffff;
+  --border-color: rgba(255, 255, 255, 0.25);
+  --border-focus: rgba(255, 255, 255, 0.8);
+}
+
+/* High contrast focus rings - more visible */
+[data-contrast="high"] *:focus-visible {
+  outline: 3px solid var(--border-focus) !important;
+  outline-offset: 2px;
+}
+
+/* High contrast links get underlines */
+[data-contrast="high"] a {
+  text-decoration: underline;
+}
+
+/* ============================================
+   TAILWIND THEME INTEGRATION
+   ============================================ */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-nunito);
 }
 
-@media (prefers-color-scheme: dark) {
+/* ============================================
+   FORCED COLORS MODE (Windows High Contrast)
+   Let the system handle colors entirely
+   ============================================ */
+
+@media (forced-colors: active) {
   :root {
-    --background: #0f172a;
-    --foreground: #f1f5f9;
-    --main-bg-color: rgba(45, 85, 95, 0.9);
-    --main-text-color: rgba(79, 139, 149, 1);
-    --main-text-color-hover: rgba(63, 115, 123, 1);
+    --main-bg-color: Canvas;
+    --main-text-color: CanvasText;
+    --background: Canvas;
+    --foreground: CanvasText;
+    --surface: Canvas;
+    --border-color: CanvasText;
+  }
+
+  /* Remove custom shadows in forced colors mode */
+  .category,
+  .legend,
+  header {
+    box-shadow: none !important;
   }
 }
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
 
 body {
   background-color: var(--background);
@@ -79,7 +203,7 @@ body {
 .content {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  gap: 16px; /* 4rem = 16px */
+  gap: 16px;
   padding: 0;
   margin: 0;
   justify-content: center;
@@ -88,20 +212,20 @@ body {
 /* Breakpoints to maintain consistent column counts and match original gap sizes */
 @media screen and (min-width: 640px) {
   .content {
-    gap: 20px; /* sm:gap-5 = 20px */
+    gap: 20px;
   }
 }
 
 @media screen and (min-width: 1024px) {
   .content {
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px; /* lg:gap-6 = 24px */
+    gap: 24px;
   }
 }
 
 @media screen and (min-width: 1280px) {
   .content {
-    gap: 32px; /* xl:gap-8 = 32px */
+    gap: 32px;
   }
 }
 
@@ -111,8 +235,12 @@ body {
   }
 }
 
+/* ============================================
+   HEADER
+   ============================================ */
+
 header {
-  background: rgba(158, 198, 204, 0.85);
+  background: var(--header-bg);
   color: white;
   font-weight: 700;
   font-size: 20px;
@@ -122,14 +250,11 @@ header {
   padding: 10px 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px); /* For Safari compatibility */
+  -webkit-backdrop-filter: blur(10px);
 }
 
-@media (prefers-color-scheme: dark) {
-  header {
-    background: rgba(45, 85, 95, 0.85);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
+[data-color-mode="dark"] header {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .title-bar {
@@ -159,24 +284,25 @@ header {
   line-height: 1.5;
 }
 
+/* ============================================
+   LEGEND
+   ============================================ */
+
 .legend {
   display: flex;
-  background: white;
+  background: var(--surface);
   color: var(--main-text-color);
   padding: 10px;
   font-size: 18px;
   text-transform: uppercase;
   font-weight: 600;
   justify-content: space-around;
-  box-shadow: 0 0 0 2px white, 0.3em 0.3em 1em rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 2px var(--surface), 0.3em 0.3em 1em rgba(0, 0, 0, 0.2);
   margin: 0 20px 10px 20px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .legend {
-    background: #1e293b;
-    box-shadow: 0 0 0 2px #1e293b, 0.3em 0.3em 1em rgba(0, 0, 0, 0.4);
-  }
+[data-color-mode="dark"] .legend {
+  box-shadow: 0 0 0 2px var(--surface), 0.3em 0.3em 1em rgba(0, 0, 0, 0.4);
 }
 
 .legend div {
@@ -185,14 +311,18 @@ header {
   white-space: nowrap;
 }
 
+/* ============================================
+   CATEGORY CARDS
+   ============================================ */
+
 .category {
   margin: 0;
   width: 100%;
-  background: white;
+  background: var(--surface);
   border-radius: 1rem;
   overflow: visible;
   box-shadow: var(--shadow-md);
-  border: 1px solid rgba(0, 0, 0, 0.07);
+  border: 1px solid var(--border-color);
 }
 
 @media screen and (min-width: 640px) {
@@ -201,27 +331,22 @@ header {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .category {
-    background: #1e293b;
-    box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    width: 100%; /* Ensure full width */
-  }
-  
-  .category .title {
-    background-color: var(--main-bg-color) !important;
-    border-top-left-radius: 0.74rem;
-    border-top-right-radius: 0.74rem;
-  }
-  
-  .category .item .item-note {
-    color: var(--foreground) !important;
-  }
-  
-  .category .item {
-    border-bottom: 1px solid rgba(100, 116, 139, 0.15)!important;
-  }
+[data-color-mode="dark"] .category {
+  width: 100%;
+}
+
+[data-color-mode="dark"] .category .title {
+  background-color: var(--main-bg-color) !important;
+  border-top-left-radius: 0.74rem;
+  border-top-right-radius: 0.74rem;
+}
+
+[data-color-mode="dark"] .category .item .item-note {
+  color: var(--foreground) !important;
+}
+
+[data-color-mode="dark"] .category .item {
+  border-bottom: 1px solid rgba(100, 116, 139, 0.15) !important;
 }
 
 .category .title {
@@ -259,6 +384,10 @@ button span,
   content: none;
 }
 
+/* ============================================
+   MENU HEADER
+   ============================================ */
+
 .menu-header {
   color: var(--main-text-color);
   font-size: 1.5rem;
@@ -269,11 +398,9 @@ button span,
   display: inline-block;
 }
 
-@media (prefers-color-scheme: dark) {
-  .menu-header {
-    color: white;
-    border-bottom: 2px solid rgba(158, 198, 204, 0.5);
-  }
+[data-color-mode="dark"] .menu-header {
+  color: white;
+  border-bottom: 2px solid rgba(158, 198, 204, 0.5);
 }
 
 .menu-header h2 {
@@ -285,12 +412,16 @@ button span,
   line-height: 1.2;
 }
 
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
+
 @media only screen and (max-width: 640px) {
   .category {
     flex: 100%;
     margin: 10px 0;
   }
-  
+
   .legend {
     font-size: 12px;
     padding: 8px 5px;
@@ -302,36 +433,36 @@ button span,
     width: 100%;
     box-shadow: none;
   }
-  
+
   .legend div {
     margin: 0 5px;
   }
-  
+
   .title-bar h1 {
     font-size: 1.8rem;
   }
-  
+
   .wrapper {
     margin: 0px;
     margin-top: 5px;
   }
-  
+
   .menu-header {
     font-size: 1.3rem;
   }
-  
+
   .category .item {
     padding: 5px 15px 15px 15px;
   }
-  
+
   .category .item .item-note {
     padding: 0 15px;
   }
-  
+
   .category .item .item-name {
     padding-right: 0;
   }
-  
+
   .category .title {
     font-size: 1.3em;
     padding: 8px 0;
@@ -342,13 +473,13 @@ button span,
 @media only screen and (min-width: 481px) and (max-width: 640px) {
   .category .item .item-note {
     padding: 0;
-    margin-left: 32px; /* Slightly larger margin for medium screens */
+    margin-left: 32px;
   }
-  
+
   .category .item .item-name {
     align-items: flex-start;
   }
-  
+
   .icon-container {
     margin-top: 2px;
   }
@@ -358,27 +489,27 @@ button span,
   .title-bar h1 {
     font-size: 1.6rem;
   }
-  
+
   .legend {
     font-size: 10px;
     padding: 6px 2px;
     justify-content: space-between;
     box-shadow: none;
   }
-  
+
   .category .item {
     padding: 5px 10px 12px 10px;
   }
-  
+
   .category .item .item-note {
     padding: 0;
-    margin-left: 28px; /* Aligns with the text in the item-name after the icon */
+    margin-left: 28px;
   }
-  
+
   .category .item .item-name {
     align-items: flex-start;
   }
-  
+
   .icon-container {
     margin-top: 2px;
   }
@@ -389,14 +520,17 @@ button span,
     white-space: normal;
     max-width: 90%;
   }
-  
+
   /* Improve button layout on small screens */
-  .flex.flex-col.md\\:flex-row {
+  .flex.flex-col.md\:flex-row {
     gap: 10px;
   }
 }
 
-/* Icon containers */
+/* ============================================
+   ICON CONTAINERS
+   ============================================ */
+
 .icon-container {
   display: inline-flex;
   align-items: center;
@@ -430,39 +564,42 @@ button.flex.items-center span {
   padding-top: 15px;
 }
 
-/* Make form elements more mobile-friendly */
+/* ============================================
+   MOBILE FORM ELEMENTS
+   ============================================ */
+
 @media only screen and (max-width: 640px) {
   input[type="text"], textarea {
     font-size: 16px; /* Prevents iOS zoom on focus */
   }
-  
+
   /* Better touch targets for most buttons, but not icon pickers or close buttons */
   button:not(.flex.flex-row.items-center > button):not(.rounded-full):not(.modal-action-button) {
     min-height: 44px;
   }
-  
+
   /* Keep fill mode icon button compact */
   .flex.flex-row.items-center > button {
     min-height: unset;
     height: auto;
   }
-  
+
   /* Improve menu edit controls spacing */
   .flex.items-center.w-full.justify-between {
     flex-wrap: wrap;
   }
-  
+
   /* Adjust spacing for icon pickers in edit mode only */
   .flex.w-full.mb-2:not(.flex-row) {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .flex.w-full.mb-2:not(.flex-row) > button,
   .flex.w-full.mb-2:not(.flex-row) > input {
     width: 100%;
   }
-  
+
   /* Adjust dropdown position */
   .absolute.right-0.z-10 {
     width: 100%;
@@ -471,14 +608,13 @@ button.flex.items-center span {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  /* Improve button layout on small screens */
-  .flex.flex-col.md\\:flex-row {
-    gap: 10px;
-  }
+[data-color-mode="dark"] .flex.flex-col.md\:flex-row {
+  gap: 10px;
 }
 
-/* Dropdown legend animation */
+/* ============================================
+   ANIMATIONS
+   ============================================ */
 
 @keyframes fadeInSlideDown {
   from {
