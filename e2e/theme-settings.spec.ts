@@ -9,7 +9,7 @@ test.describe('Theme Settings', () => {
   });
 
   test.describe('Settings Modal', () => {
-    test('opens when clicking Settings button in footer', async ({ page }) => {
+    test('opens when clicking Settings button in header', async ({ page }) => {
       await page.goto('/');
 
       // Click the Settings button
@@ -86,7 +86,7 @@ test.describe('Theme Settings', () => {
       await page.getByRole('button', { name: 'Settings' }).click();
 
       // Select Light mode
-      await page.getByRole('radio', { name: 'Light' }).check();
+      await page.getByRole('radio', { name: 'Light' }).check({ force: true });
 
       // HTML should have data-color-mode="light"
       const colorMode = await page.locator('html').getAttribute('data-color-mode');
@@ -98,7 +98,7 @@ test.describe('Theme Settings', () => {
       await page.getByRole('button', { name: 'Settings' }).click();
 
       // Select Dark mode
-      await page.getByRole('radio', { name: 'Dark' }).check();
+      await page.getByRole('radio', { name: 'Dark' }).check({ force: true });
 
       // HTML should have data-color-mode="dark"
       const colorMode = await page.locator('html').getAttribute('data-color-mode');
@@ -108,7 +108,7 @@ test.describe('Theme Settings', () => {
     test('persists color mode across page reload', async ({ page }) => {
       await page.goto('/');
       await page.getByRole('button', { name: 'Settings' }).click();
-      await page.getByRole('radio', { name: 'Dark' }).check();
+      await page.getByRole('radio', { name: 'Dark' }).check({ force: true });
 
       // Reload the page
       await page.reload();
@@ -137,7 +137,7 @@ test.describe('Theme Settings', () => {
       await page.getByRole('button', { name: 'Settings' }).click();
 
       // Select PD theme
-      await page.getByRole('radio', { name: /Protanopia.*Deuteranopia/i }).check();
+      await page.getByRole('radio', { name: /Protanopia.*Deuteranopia/i }).check({ force: true });
 
       // HTML should have data-vision="pd"
       const vision = await page.locator('html').getAttribute('data-vision');
@@ -149,7 +149,7 @@ test.describe('Theme Settings', () => {
       await page.getByRole('button', { name: 'Settings' }).click();
 
       // Select Tritanopia theme
-      await page.getByRole('radio', { name: 'Tritanopia' }).check();
+      await page.getByRole('radio', { name: 'Tritanopia' }).check({ force: true });
 
       // HTML should have data-vision="tritan"
       const vision = await page.locator('html').getAttribute('data-vision');
@@ -159,7 +159,7 @@ test.describe('Theme Settings', () => {
     test('persists vision theme across page reload', async ({ page }) => {
       await page.goto('/');
       await page.getByRole('button', { name: 'Settings' }).click();
-      await page.getByRole('radio', { name: 'Tritanopia' }).check();
+      await page.getByRole('radio', { name: 'Tritanopia' }).check({ force: true });
 
       // Reload the page
       await page.reload();
@@ -224,8 +224,8 @@ test.describe('Theme Settings', () => {
       await page.getByRole('button', { name: 'Settings' }).click();
 
       // Set all three
-      await page.getByRole('radio', { name: 'Dark' }).check();
-      await page.getByRole('radio', { name: /Protanopia.*Deuteranopia/i }).check();
+      await page.getByRole('radio', { name: 'Dark' }).check({ force: true });
+      await page.getByRole('radio', { name: /Protanopia.*Deuteranopia/i }).check({ force: true });
       await page.getByRole('switch', { name: /increase contrast/i }).click();
 
       // Close and reload
@@ -301,7 +301,7 @@ test.describe('Theme Settings', () => {
 
       // Switch to dark mode
       await page.getByRole('button', { name: 'Settings' }).click();
-      await page.getByRole('radio', { name: 'Dark' }).check();
+      await page.getByRole('radio', { name: 'Dark' }).check({ force: true });
 
       // Get dark background
       const darkBg = await page.evaluate(() => {
@@ -323,7 +323,7 @@ test.describe('Theme Settings', () => {
 
       // Switch to PD theme
       await page.getByRole('button', { name: 'Settings' }).click();
-      await page.getByRole('radio', { name: /Protanopia.*Deuteranopia/i }).check();
+      await page.getByRole('radio', { name: /Protanopia.*Deuteranopia/i }).check({ force: true });
 
       // Get new header color
       const pdHeaderBg = await page.evaluate(() => {
@@ -333,6 +333,95 @@ test.describe('Theme Settings', () => {
 
       // Should be different
       expect(pdHeaderBg).not.toBe(initialHeaderBg);
+    });
+  });
+
+  test.describe('Vision recolors semantic icons', () => {
+    const LEVELS = ['must', 'like', 'maybe', 'prefer-not', 'off-limit', 'talk'];
+
+    function iconHues(page: import('@playwright/test').Page) {
+      return page.evaluate((levels: string[]) => {
+        const cs = getComputedStyle(document.documentElement);
+        const out: Record<string, string> = {};
+        for (const l of levels) out[l] = cs.getPropertyValue(`--icon-${l}`).trim();
+        return out;
+      }, LEVELS);
+    }
+
+    async function selectVision(page: import('@playwright/test').Page, name: string | RegExp) {
+      await page.getByRole('button', { name: 'Settings' }).click();
+      // The radio input is sr-only with a custom span overlay, so force the check
+      await page.getByRole('radio', { name }).check({ force: true });
+      await page.getByRole('button', { name: 'Close settings' }).click();
+    }
+
+    test('pd and tritan change the semantic icon hues vs default', async ({ page }) => {
+      await page.goto('/');
+      const def = await iconHues(page);
+
+      await selectVision(page, /Protanopia.*Deuteranopia/i);
+      const pd = await iconHues(page);
+
+      await selectVision(page, 'Tritanopia');
+      const tri = await iconHues(page);
+
+      // The collision-prone levels must differ from the default palette in each mode
+      expect(pd.must).not.toBe(def.must);
+      expect(pd['off-limit']).not.toBe(def['off-limit']);
+      expect(tri.must).not.toBe(def.must);
+      expect(tri['off-limit']).not.toBe(def['off-limit']);
+    });
+
+    test('the six hues are mutually distinct within each vision mode', async ({ page }) => {
+      await page.goto('/');
+      for (const vision of [null, /Protanopia.*Deuteranopia/i, 'Tritanopia'] as const) {
+        if (vision) await selectVision(page, vision);
+        const values = Object.values(await iconHues(page));
+        expect(new Set(values).size).toBe(values.length);
+      }
+    });
+
+    test('[fill:var()] paints a real color and follows data-vision (SVG-attr gotcha)', async ({ page }) => {
+      await page.goto('/');
+      const readFill = () => page.evaluate(() => {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        c.setAttribute('class', '[fill:var(--icon-must-fill)]');
+        svg.appendChild(c);
+        document.body.appendChild(svg);
+        const fill = getComputedStyle(c).fill;
+        svg.remove();
+        return fill;
+      });
+
+      const defFill = await readFill();
+      // A real resolved color (rgb/color()), not empty/none/unresolved var —
+      // proves the [fill:var()] class actually paints via CSS (the SVG-attr gotcha).
+      expect(defFill).toMatch(/^(rgb|color\()/);
+      expect(defFill).not.toContain('var(');
+
+      await selectVision(page, /Protanopia.*Deuteranopia/i);
+      const pdFill = await readFill();
+      expect(pdFill).toMatch(/^(rgb|color\()/);
+      // And it follows data-vision
+      expect(pdFill).not.toBe(defFill);
+    });
+
+    test('picker tile background follows data-vision', async ({ page }) => {
+      await page.goto('/');
+      const readTile = () => page.evaluate(() => {
+        const d = document.createElement('div');
+        d.className = 'bg-[var(--icon-must-tile)]';
+        document.body.appendChild(d);
+        const bg = getComputedStyle(d).backgroundColor;
+        d.remove();
+        return bg;
+      });
+
+      const def = await readTile();
+      await selectVision(page, /Protanopia.*Deuteranopia/i);
+      const pd = await readTile();
+      expect(pd).not.toBe(def);
     });
   });
 });
@@ -352,7 +441,7 @@ test.describe('localStorage Integration', () => {
   test('stores preferences in correct localStorage key', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Settings' }).click();
-    await page.getByRole('radio', { name: 'Dark' }).check();
+    await page.getByRole('radio', { name: 'Dark' }).check({ force: true });
 
     // Check localStorage
     const stored = await page.evaluate(() => {
