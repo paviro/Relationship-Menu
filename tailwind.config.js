@@ -3,8 +3,7 @@ module.exports = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  // Use data-color-mode attribute for dark mode instead of media query
-  darkMode: ['selector', '[data-color-mode="dark"]'],
+  // Dark mode is configured in app/globals.css via `@custom-variant dark`.
   theme: {
     extend: {
       fontFamily: {

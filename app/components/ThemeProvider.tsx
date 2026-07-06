@@ -1,14 +1,13 @@
 'use client';
 
 import { useEffect, useCallback, createContext, useContext, useState, ReactNode } from 'react';
-import { ThemePreferences } from '../types';
+import { ThemePreferences, ContrastLevel } from '../types';
 import {
   getThemePreferences,
   saveThemePreferences,
   resolveColorMode,
   systemPrefersHighContrast,
   DEFAULT_THEME,
-  THEME_STORAGE_KEY,
 } from '../utils/themeStorage';
 
 type ThemeContextValue = {
@@ -25,23 +24,6 @@ export function useTheme() {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-}
-
-/**
- * Checks if user has explicitly saved a contrast preference in localStorage.
- * Returns false if localStorage is empty, corrupted, or missing the contrast field.
- */
-function hasExplicitContrastPreference(): boolean {
-  if (typeof window === 'undefined') return false;
-
-  try {
-    const rawStored = localStorage.getItem(THEME_STORAGE_KEY);
-    if (!rawStored) return false;
-    const parsed = JSON.parse(rawStored);
-    return parsed.contrast !== undefined;
-  } catch {
-    return false;
-  }
 }
 
 /**
@@ -81,9 +63,9 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
   useEffect(() => {
     const stored = getThemePreferences();
 
-    // If no explicit contrast preference, respect system prefers-contrast
+    // Follow system prefers-contrast until the user explicitly sets it.
     let finalPrefs = stored;
-    if (!hasExplicitContrastPreference() && systemPrefersHighContrast()) {
+    if (!stored.contrastExplicit && systemPrefersHighContrast()) {
       finalPrefs = { ...stored, contrast: 'high' };
     }
 
@@ -120,10 +102,8 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     const contrastQueryHigh = window.matchMedia('(prefers-contrast: high)');
 
     const handleContrastChange = () => {
-      // Only auto-update if user hasn't explicitly set contrast
-      if (!hasExplicitContrastPreference()) {
-        // Use systemPrefersHighContrast for consistent detection logic
-        const newContrast = systemPrefersHighContrast() ? 'high' : 'normal';
+      if (!preferences.contrastExplicit) {
+        const newContrast: ContrastLevel = systemPrefersHighContrast() ? 'high' : 'normal';
         const newPrefs = { ...preferences, contrast: newContrast };
         setPreferencesState(newPrefs);
         applyThemeToDocument(newPrefs);

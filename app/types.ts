@@ -66,4 +66,6 @@ export type ThemePreferences = {
   colorMode: ColorMode;
   vision: VisionTheme;
   contrast: ContrastLevel;
+  // When false/absent, contrast follows the system prefers-contrast setting.
+  contrastExplicit?: boolean;
 };

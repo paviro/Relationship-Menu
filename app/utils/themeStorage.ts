@@ -61,7 +61,11 @@ export function getThemePreferences(): ThemePreferences {
       ? parsed.contrast
       : DEFAULT_THEME.contrast;
 
-    return { colorMode, vision, contrast };
+    const contrastExplicit = typeof parsed.contrastExplicit === 'boolean'
+      ? parsed.contrastExplicit
+      : false;
+
+    return { colorMode, vision, contrast, contrastExplicit };
   } catch (error) {
     console.error('Error reading theme preferences:', error);
     return DEFAULT_THEME;
