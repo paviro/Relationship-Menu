@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useCallback, createContext, useContext, useState, ReactNode } from 'react';
-import { ThemePreferences, ContrastLevel } from '../types';
+import { ThemePreferences } from '../types';
 import {
   getThemePreferences,
   saveThemePreferences,
   resolveColorMode,
-  systemPrefersHighContrast,
+  applySystemContrast,
   DEFAULT_THEME,
   THEME_STORAGE_KEY,
 } from '../utils/themeStorage';
@@ -66,22 +66,21 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     setResolvedColorMode(resolveColorMode(newPrefs));
   }, []);
 
-  // Initialize: read stored preferences on mount
-  // Also respect system prefers-contrast if user hasn't explicitly set contrast
-  useEffect(() => {
-    const stored = getThemePreferences();
-
-    // Follow system prefers-contrast until the user explicitly sets it.
-    let finalPrefs = stored;
-    if (!stored.contrastExplicit && systemPrefersHighContrast()) {
-      finalPrefs = { ...stored, contrast: 'high' };
-    }
-
+  // Read stored preferences, derive system contrast, and apply to state + DOM.
+  // Shared by the mount effect and the cross-tab storage listener so both paths
+  // resolve preferences identically.
+  const hydrateFromStorage = useCallback(() => {
+    const finalPrefs = applySystemContrast(getThemePreferences());
     setPreferencesState(finalPrefs);
     applyThemeToDocument(finalPrefs);
     setResolvedColorMode(resolveColorMode(finalPrefs));
-    setMounted(true);
   }, []);
+
+  // Initialize on mount
+  useEffect(() => {
+    hydrateFromStorage();
+    setMounted(true);
+  }, [hydrateFromStorage]);
 
   // Listen for system color scheme changes
   useEffect(() => {
@@ -111,8 +110,8 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
 
     const handleContrastChange = () => {
       if (!preferences.contrastExplicit) {
-        const newContrast: ContrastLevel = systemPrefersHighContrast() ? 'high' : 'normal';
-        const newPrefs = { ...preferences, contrast: newContrast };
+        // Re-derive from the system in both directions (normal base → high if preferred).
+        const newPrefs = applySystemContrast({ ...preferences, contrast: 'normal' });
         setPreferencesState(newPrefs);
         applyThemeToDocument(newPrefs);
       }
@@ -131,21 +130,12 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== THEME_STORAGE_KEY) return;
-
-      const stored = getThemePreferences();
-      let finalPrefs = stored;
-      if (!stored.contrastExplicit && systemPrefersHighContrast()) {
-        finalPrefs = { ...stored, contrast: 'high' };
-      }
-
-      setPreferencesState(finalPrefs);
-      applyThemeToDocument(finalPrefs);
-      setResolvedColorMode(resolveColorMode(finalPrefs));
+      hydrateFromStorage();
     };
 
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+  }, [hydrateFromStorage]);
 
   const contextValue: ThemeContextValue = {
     preferences,

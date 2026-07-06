@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { IconSliders, IconX } from '../icons';
 import { useTheme } from '../ThemeProvider';
+import { useModalA11y } from './useModalA11y';
 import { ColorMode, VisionTheme, ContrastLevel } from '../../types';
 
 interface SettingsModalProps {
@@ -10,89 +12,105 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
-type ColorModeOption = {
-  value: ColorMode;
+type RadioOption<T extends string> = {
+  value: T;
   label: string;
   description: string;
 };
 
-type VisionOption = {
-  value: VisionTheme;
-  label: string;
-  description: string;
-};
-
-const COLOR_MODE_OPTIONS: ColorModeOption[] = [
+const COLOR_MODE_OPTIONS: RadioOption<ColorMode>[] = [
   { value: 'system', label: 'System', description: 'Follow your device settings' },
   { value: 'light', label: 'Light', description: 'Always use light theme' },
   { value: 'dark', label: 'Dark', description: 'Always use dark theme' },
 ];
 
-const VISION_OPTIONS: VisionOption[] = [
+const VISION_OPTIONS: RadioOption<VisionTheme>[] = [
   { value: 'default', label: 'Default', description: 'Standard color palette' },
   { value: 'pd', label: 'Protanopia & Deuteranopia', description: 'Optimized for red-green color vision' },
   { value: 'tritan', label: 'Tritanopia', description: 'Optimized for blue-yellow color vision' },
 ];
 
+// A single-select group of styled radio options (used for Color Mode and Color Vision).
+function RadioOptionGroup<T extends string>({
+  legend,
+  name,
+  options,
+  value,
+  onChange,
+}: {
+  legend: string;
+  name: string;
+  options: RadioOption<T>[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <fieldset className="mb-6">
+      <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        {legend}
+      </legend>
+      <div className="space-y-2">
+        {options.map((option) => {
+          const selected = value === option.value;
+          const descId = `${name}-${option.value}-desc`;
+          return (
+            <label
+              key={option.value}
+              className={`hc-option flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                selected
+                  ? 'hc-option-active border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
+                  : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              }`}
+            >
+              <input
+                type="radio"
+                name={name}
+                value={option.value}
+                checked={selected}
+                onChange={() => onChange(option.value)}
+                aria-describedby={descId}
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden="true"
+                className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--main-text-color)] peer-focus-visible:ring-offset-2 ${
+                  selected
+                    ? 'border-[var(--main-text-color)]'
+                    : 'border-gray-300 dark:border-gray-500'
+                }`}
+              >
+                {selected && (
+                  <span className="h-2 w-2 rounded-full bg-[var(--main-text-color)]" />
+                )}
+              </span>
+              <div className="ml-3">
+                <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {option.label}
+                </span>
+                <span id={descId} className="block text-xs text-gray-500 dark:text-gray-400">
+                  {option.description}
+                </span>
+              </div>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { preferences, setPreferences } = useTheme();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
+  const { containerRef } = useModalA11y({
+    isOpen,
+    onDismiss: onClose,
+    initialFocusRef: closeButtonRef,
+  });
 
-  // Focus trap and body scroll lock
-  useEffect(() => {
-    if (isOpen) {
-      closeButtonRef.current?.focus();
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  // Handle escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
-  // Handle focus trap
-  useEffect(() => {
-    if (!isOpen || !modalRef.current) return;
-
-    const modal = modalRef.current;
-    const focusableElements = modal.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
-
-    const handleTabKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
-
-      if (e.shiftKey && document.activeElement === firstElement) {
-        e.preventDefault();
-        lastElement?.focus();
-      } else if (!e.shiftKey && document.activeElement === lastElement) {
-        e.preventDefault();
-        firstElement?.focus();
-      }
-    };
-
-    modal.addEventListener('keydown', handleTabKey);
-    return () => modal.removeEventListener('keydown', handleTabKey);
-  }, [isOpen]);
-
-  if (!isOpen) return null;
+  // Only reachable client-side (isOpen starts false and flips on user action),
+  // so document.body is available for the portal.
+  if (!isOpen || typeof document === 'undefined') return null;
 
   const handleColorModeChange = (value: ColorMode) => {
     setPreferences({ ...preferences, colorMode: value });
@@ -106,7 +124,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     setPreferences({ ...preferences, contrast: value, contrastExplicit: true });
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[2000] overflow-y-auto"
       role="dialog"
@@ -127,7 +145,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
         {/* Modal content */}
         <div
-          ref={modalRef}
+          ref={containerRef}
           className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 relative z-10"
         >
           {/* Header */}
@@ -152,102 +170,22 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <div className="border-b border-gray-200 dark:border-gray-700 -mx-4 sm:-mx-6 mb-6"></div>
 
           {/* Color Mode Section */}
-          <fieldset className="mb-6">
-            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Color Mode
-            </legend>
-            <div className="space-y-2">
-              {COLOR_MODE_OPTIONS.map((option) => (
-                <label
-                  key={option.value}
-                  className={`hc-option flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                    preferences.colorMode === option.value
-                      ? 'hc-option-active border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
-                      : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="colorMode"
-                    value={option.value}
-                    checked={preferences.colorMode === option.value}
-                    onChange={() => handleColorModeChange(option.value)}
-                    aria-describedby={`colorMode-${option.value}-desc`}
-                    className="peer sr-only"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--main-text-color)] peer-focus-visible:ring-offset-2 ${
-                      preferences.colorMode === option.value
-                        ? 'border-[var(--main-text-color)]'
-                        : 'border-gray-300 dark:border-gray-500'
-                    }`}
-                  >
-                    {preferences.colorMode === option.value && (
-                      <span className="h-2 w-2 rounded-full bg-[var(--main-text-color)]" />
-                    )}
-                  </span>
-                  <div className="ml-3">
-                    <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {option.label}
-                    </span>
-                    <span id={`colorMode-${option.value}-desc`} className="block text-xs text-gray-500 dark:text-gray-400">
-                      {option.description}
-                    </span>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          <RadioOptionGroup
+            legend="Color Mode"
+            name="colorMode"
+            options={COLOR_MODE_OPTIONS}
+            value={preferences.colorMode}
+            onChange={handleColorModeChange}
+          />
 
           {/* Vision Theme Section */}
-          <fieldset className="mb-6">
-            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Color Vision
-            </legend>
-            <div className="space-y-2">
-              {VISION_OPTIONS.map((option) => (
-                <label
-                  key={option.value}
-                  className={`hc-option flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                    preferences.vision === option.value
-                      ? 'hc-option-active border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
-                      : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="vision"
-                    value={option.value}
-                    checked={preferences.vision === option.value}
-                    onChange={() => handleVisionChange(option.value)}
-                    aria-describedby={`vision-${option.value}-desc`}
-                    className="peer sr-only"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--main-text-color)] peer-focus-visible:ring-offset-2 ${
-                      preferences.vision === option.value
-                        ? 'border-[var(--main-text-color)]'
-                        : 'border-gray-300 dark:border-gray-500'
-                    }`}
-                  >
-                    {preferences.vision === option.value && (
-                      <span className="h-2 w-2 rounded-full bg-[var(--main-text-color)]" />
-                    )}
-                  </span>
-                  <div className="ml-3">
-                    <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {option.label}
-                    </span>
-                    <span id={`vision-${option.value}-desc`} className="block text-xs text-gray-500 dark:text-gray-400">
-                      {option.description}
-                    </span>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          <RadioOptionGroup
+            legend="Color Vision"
+            name="vision"
+            options={VISION_OPTIONS}
+            value={preferences.vision}
+            onChange={handleVisionChange}
+          />
 
           {/* High Contrast Toggle */}
           <fieldset>
@@ -295,8 +233,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
-
-export default SettingsModal;

@@ -4,7 +4,7 @@ import "./globals.css";
 import { ToastProvider } from "./components/ui/Toast";
 import LayoutWrapper from "./components/LayoutWrapper";
 import ThemeProvider from "./components/ThemeProvider";
-import { THEME_STORAGE_KEY } from "./utils/themeStorage";
+import { THEME_STORAGE_KEY, DEFAULT_THEME } from "./utils/themeStorage";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -71,16 +71,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
+                var defaults = ${JSON.stringify(DEFAULT_THEME)};
                 try {
                   var stored = localStorage.getItem('${THEME_STORAGE_KEY}');
                   var prefs = stored ? JSON.parse(stored) : {};
-                  var colorMode = prefs.colorMode || 'system';
-                  var vision = prefs.vision || 'default';
-                  var contrast = prefs.contrast || 'normal';
+                  var colorMode = prefs.colorMode || defaults.colorMode;
+                  var vision = prefs.vision || defaults.vision;
+                  var contrast = prefs.contrast || defaults.contrast;
 
                   var resolvedMode = colorMode;
                   if (colorMode === 'system') {
                     resolvedMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  }
+
+                  // Follow system prefers-contrast until the user sets contrast explicitly.
+                  // Mirrors systemPrefersHighContrast() so first paint matches ThemeProvider.
+                  if (prefs.contrastExplicit !== true &&
+                      (window.matchMedia('(prefers-contrast: more)').matches ||
+                       window.matchMedia('(prefers-contrast: high)').matches)) {
+                    contrast = 'high';
                   }
 
                   document.documentElement.setAttribute('data-color-mode', resolvedMode);
@@ -88,8 +97,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   document.documentElement.setAttribute('data-contrast', contrast);
                 } catch (e) {
                   document.documentElement.setAttribute('data-color-mode', 'light');
-                  document.documentElement.setAttribute('data-vision', 'default');
-                  document.documentElement.setAttribute('data-contrast', 'normal');
+                  document.documentElement.setAttribute('data-vision', defaults.vision);
+                  document.documentElement.setAttribute('data-contrast', defaults.contrast);
                 }
               })();
             `,

@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { IconWarning } from '../icons';
+import { useModalA11y } from './useModalA11y';
 
 export interface ConfirmModalProps {
   isOpen: boolean;
@@ -26,36 +27,11 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    // Trap focus within modal when open
-    if (isOpen) {
-      if (initialFocus === 'cancel' && cancelButtonRef.current) {
-        cancelButtonRef.current.focus();
-      } else if (confirmButtonRef.current) {
-        confirmButtonRef.current.focus();
-      }
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, initialFocus]);
-
-  // Handle escape key press
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const { containerRef } = useModalA11y({
+    isOpen,
+    onDismiss: onClose,
+    initialFocusRef: initialFocus === 'cancel' ? cancelButtonRef : confirmButtonRef,
+  });
 
   if (!isOpen) return null;
   
@@ -74,7 +50,7 @@ export function ConfirmModal({
             <div className="absolute inset-0 bg-gray-500/80 dark:bg-gray-900/90 backdrop-blur-sm"></div>
           </div>
           <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-          <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 relative z-10">
+          <div ref={containerRef} className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 relative z-10">
             <div>
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
                 <IconWarning className="h-6 w-6 text-yellow-600 dark:text-yellow-500" aria-hidden="true" />
@@ -136,7 +112,7 @@ export function ConfirmModal({
           <div className="absolute inset-0 bg-gray-500/80 dark:bg-gray-900/90 backdrop-blur-sm"></div>
         </div>
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 relative z-10">
+        <div ref={containerRef} className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 relative z-10">
           <div>
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
               <IconWarning className="h-6 w-6 text-yellow-600 dark:text-yellow-500" aria-hidden="true" />

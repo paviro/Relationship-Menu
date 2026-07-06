@@ -1,7 +1,7 @@
 import React from 'react';
 import { ExportButton } from './ExportButton';
 import { MenuButton } from './MenuButton';
-import { SettingsButton } from './SettingsButton';
+import { SettingsButton } from '../../ui/SettingsButton';
 import { MenuData } from '../../../types';
 import { ToastType } from '../../../components/ui/Toast/ToastContext';
 
@@ -44,5 +44,4 @@ export function MenuToolbar({
 // Export individual components for direct use if needed
 export { ExportButton } from './ExportButton';
 export { MenuButton } from './MenuButton';
-export { SettingsButton } from './SettingsButton';
 export { FloatingModeSelector } from './FloatingModeSelector';

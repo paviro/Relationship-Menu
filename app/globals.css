@@ -347,6 +347,8 @@
   /* Softer border for chip-like controls; full --foreground reads as "selected". */
   --hc-border: #4b5563;
   --hc-separator: rgba(0, 0, 0, 0.35);
+  /* Clearly perceptible hover background for the current color mode. */
+  --hc-hover-bg: #cbd5e1;
 }
 
 [data-color-mode="dark"][data-contrast="high"] {
@@ -355,6 +357,7 @@
   --border-focus: rgba(255, 255, 255, 0.8);
   --hc-border: #cbd5e1;
   --hc-separator: rgba(255, 255, 255, 0.35);
+  --hc-hover-bg: #64748b;
 }
 
 /* Pull muted Tailwind grays toward the strong foreground, per color mode. */
@@ -473,11 +476,11 @@
 [data-contrast="high"] .hc-panel > .py-1 > button + button { border-top: 1px solid var(--hc-separator); }
 [data-contrast="high"] .hc-panel .border-t { border-top-color: var(--hc-separator); }
 
-/* Make hover clearly perceptible in high contrast */
+/* Make hover clearly perceptible in high contrast (per-mode value via --hc-hover-bg) */
 [data-color-mode="light"][data-contrast="high"] .hover\:bg-gray-50:hover,
-[data-color-mode="light"][data-contrast="high"] .hover\:bg-gray-100:hover { background-color: #cbd5e1; }
+[data-color-mode="light"][data-contrast="high"] .hover\:bg-gray-100:hover { background-color: var(--hc-hover-bg); }
 [data-color-mode="dark"][data-contrast="high"] .dark\:hover\:bg-gray-700:hover,
-[data-color-mode="dark"][data-contrast="high"] .dark\:hover\:bg-gray-500:hover { background-color: #64748b; }
+[data-color-mode="dark"][data-contrast="high"] .dark\:hover\:bg-gray-500:hover { background-color: var(--hc-hover-bg); }
 
 /* High contrast focus rings - more visible for users with low vision */
 [data-contrast="high"] *:focus-visible {

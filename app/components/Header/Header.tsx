@@ -4,12 +4,10 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import ShowLegendWhenMenuActive from './ShowLegendWhenMenuActive';
 import ConditionalSubtitle from './ConditionalSubtitle';
-import { IconSliders } from '../icons';
-import { SettingsModal } from '../ui/SettingsModal';
+import { SettingsButton } from '../ui/SettingsButton';
 
 export default function Header() {
   const [showLegendOverlay, setShowLegendOverlay] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const pathname = usePathname();
 
   // Check if we're on the editor page
@@ -34,20 +32,15 @@ export default function Header() {
           {/* Settings entry point for non-editor pages — in-flow on mobile (mirrors the editor's legend button),
               absolute top-right on larger screens where the header becomes a centered column. */}
           {!isEditorPage && (
-            <button
+            <SettingsButton
               className="sm:absolute sm:right-8 sm:top-1/2 sm:-translate-y-1/2 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full p-1.5 focus:outline-none focus:ring-2 focus:ring-white"
-              onClick={() => setIsSettingsOpen(true)}
-              aria-label="Settings"
-              title="Settings"
-            >
-              <IconSliders className="w-6 h-6" />
-            </button>
+              iconClassName="w-6 h-6"
+            />
           )}
           <ConditionalSubtitle />
         </div>
         <ShowLegendWhenMenuActive showAsOverlay={showLegendOverlay} onClose={() => setShowLegendOverlay(false)} />
       </header>
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </>
   );
 }

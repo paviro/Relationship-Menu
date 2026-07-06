@@ -121,3 +121,16 @@ export function systemPrefersHighContrast(): boolean {
     window.matchMedia('(prefers-contrast: high)').matches
   );
 }
+
+/**
+ * Returns preferences with contrast forced to 'high' when the user hasn't set
+ * it explicitly and the system prefers high contrast. Otherwise returns the
+ * preferences unchanged. This keeps every read path (mount, storage sync,
+ * contrast media-query change) deriving contrast the same way.
+ */
+export function applySystemContrast(prefs: ThemePreferences): ThemePreferences {
+  if (!prefs.contrastExplicit && systemPrefersHighContrast()) {
+    return { ...prefs, contrast: 'high' };
+  }
+  return prefs;
+}
