@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tie the `dark:` variant to the data-color-mode attribute, not prefers-color-scheme. */
+@custom-variant dark (&:where([data-color-mode="dark"], [data-color-mode="dark"] *));
+
 /* Rich Text Editor Styles */
 .ProseMirror {
   outline: none;
@@ -120,6 +123,120 @@
 }
 
 /* ============================================
+   SEMANTIC PREFERENCE ICON COLORS
+   One hue per level; the circle fill, picker tile, and text-highlight marker
+   are derived from it via color-mix. Vision themes override only the hues, so
+   fills/tiles/markers follow automatically.
+   ============================================ */
+
+:root {
+  --icon-must: #3b82f6;
+  --icon-like: #22c55e;
+  --icon-maybe: #f59e0b;
+  --icon-prefer-not: #64748b;
+  --icon-off-limit: #ef4444;
+  --icon-talk: #8b5cf6;
+
+  --icon-must-fill: color-mix(in srgb, var(--icon-must) 18%, #fff);
+  --icon-like-fill: color-mix(in srgb, var(--icon-like) 18%, #fff);
+  --icon-maybe-fill: color-mix(in srgb, var(--icon-maybe) 18%, #fff);
+  --icon-prefer-not-fill: color-mix(in srgb, var(--icon-prefer-not) 18%, #fff);
+  --icon-off-limit-fill: color-mix(in srgb, var(--icon-off-limit) 18%, #fff);
+  --icon-talk-fill: color-mix(in srgb, var(--icon-talk) 18%, #fff);
+
+  --icon-must-tile: color-mix(in srgb, var(--icon-must) 20%, #fff);
+  --icon-like-tile: color-mix(in srgb, var(--icon-like) 20%, #fff);
+  --icon-maybe-tile: color-mix(in srgb, var(--icon-maybe) 20%, #fff);
+  --icon-prefer-not-tile: color-mix(in srgb, var(--icon-prefer-not) 20%, #fff);
+  --icon-off-limit-tile: color-mix(in srgb, var(--icon-off-limit) 20%, #fff);
+  --icon-talk-tile: color-mix(in srgb, var(--icon-talk) 20%, #fff);
+
+  --icon-not-set-fill: rgba(139, 185, 193, 0.8);
+  --icon-not-set-tile: #f5f5f5;
+}
+
+/* Dark: circle fills become the solid hue, tiles a translucent hue */
+[data-color-mode="dark"] {
+  --icon-must: #1d4ed8;
+  --icon-like: #15803d;
+  --icon-maybe: #d97706;
+  --icon-prefer-not: #334155;
+  --icon-off-limit: #991b1b;
+  --icon-talk: #8b5cf6;
+
+  --icon-must-fill: var(--icon-must);
+  --icon-like-fill: var(--icon-like);
+  --icon-maybe-fill: var(--icon-maybe);
+  --icon-prefer-not-fill: var(--icon-prefer-not);
+  --icon-off-limit-fill: var(--icon-off-limit);
+  --icon-talk-fill: var(--icon-talk);
+
+  --icon-must-tile: color-mix(in srgb, var(--icon-must) 50%, transparent);
+  --icon-like-tile: color-mix(in srgb, var(--icon-like) 50%, transparent);
+  --icon-maybe-tile: color-mix(in srgb, var(--icon-maybe) 50%, transparent);
+  --icon-prefer-not-tile: color-mix(in srgb, var(--icon-prefer-not) 50%, transparent);
+  --icon-off-limit-tile: color-mix(in srgb, var(--icon-off-limit) 50%, transparent);
+  --icon-talk-tile: color-mix(in srgb, var(--icon-talk) 50%, transparent);
+
+  --icon-not-set-tile: #374151;
+}
+
+/* Protanopia/Deuteranopia (red-green): blue/yellow/orange axis (Okabe-Ito) */
+[data-vision="pd"] {
+  --icon-must: #0072b2;
+  --icon-like: #56b4e9;
+  --icon-maybe: #e6c200;
+  --icon-prefer-not: #6b7280;
+  --icon-off-limit: #d55e00;
+  --icon-talk: #cc79a7;
+}
+[data-color-mode="dark"][data-vision="pd"] {
+  --icon-must: #4a97c9;
+  --icon-like: #7bc3ed;
+  --icon-maybe: #f0d43c;
+  --icon-prefer-not: #9ca3af;
+  --icon-off-limit: #e67a2e;
+  --icon-talk: #d993bc;
+}
+
+/* Tritanopia (blue-yellow): red<->teal diverging + orange */
+[data-vision="tritan"] {
+  --icon-must: #008b8b;
+  --icon-like: #5fbebe;
+  --icon-maybe: #6b7280;
+  --icon-prefer-not: #e8968b;
+  --icon-off-limit: #c1121f;
+  --icon-talk: #c77400;
+}
+[data-color-mode="dark"][data-vision="tritan"] {
+  --icon-must: #33a6a6;
+  --icon-like: #85d0d0;
+  --icon-maybe: #9ca3af;
+  --icon-prefer-not: #f0b4ac;
+  --icon-off-limit: #e0313e;
+  --icon-talk: #e08a1e;
+}
+
+/* Text-highlight markers behind item names, derived from the same hues */
+.item-marker-must,
+.item-marker-like,
+.item-marker-maybe,
+.item-marker-prefer-not,
+.item-marker-off-limit {
+  background-image: linear-gradient(
+    -100deg,
+    color-mix(in srgb, var(--marker-hue) 22%, transparent),
+    color-mix(in srgb, var(--marker-hue) 52%, transparent) 95%,
+    color-mix(in srgb, var(--marker-hue) 12%, transparent)
+  );
+}
+.item-marker-must { --marker-hue: var(--icon-must); }
+.item-marker-like { --marker-hue: var(--icon-like); }
+.item-marker-maybe { --marker-hue: var(--icon-maybe); }
+.item-marker-prefer-not { --marker-hue: var(--icon-prefer-not); }
+.item-marker-off-limit { --marker-hue: var(--icon-off-limit); }
+
+/* ============================================
    HIGH CONTRAST MODE
    Increases contrast ratios for better visibility
    ============================================ */
@@ -129,18 +246,131 @@
   --border-color: rgba(0, 0, 0, 0.25);
   --border-focus: rgba(0, 0, 0, 0.8);
   --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  /* Softer border for chip-like controls; full --foreground reads as "selected". */
+  --hc-border: #4b5563;
+  --hc-separator: rgba(0, 0, 0, 0.35);
 }
 
 [data-color-mode="dark"][data-contrast="high"] {
   --foreground: #ffffff;
   --border-color: rgba(255, 255, 255, 0.25);
   --border-focus: rgba(255, 255, 255, 0.8);
+  --hc-border: #cbd5e1;
+  --hc-separator: rgba(255, 255, 255, 0.35);
 }
+
+/* Pull muted Tailwind grays toward the strong foreground, per color mode. */
+
+/* Light: darken muted secondary text */
+[data-color-mode="light"][data-contrast="high"] .text-gray-400 { color: #374151; } /* → gray-700 */
+[data-color-mode="light"][data-contrast="high"] .text-gray-500 { color: #1f2937; } /* → gray-800 */
+[data-color-mode="light"][data-contrast="high"] .text-gray-600 { color: #111827; } /* → gray-900 */
+
+/* Dark: lighten muted secondary text */
+[data-color-mode="dark"][data-contrast="high"] .dark\:text-gray-500 { color: #d1d5db; } /* → gray-300 */
+[data-color-mode="dark"][data-contrast="high"] .dark\:text-gray-400 { color: #e5e7eb; } /* → gray-200 */
+[data-color-mode="dark"][data-contrast="high"] .dark\:text-gray-300 { color: #f3f4f6; } /* → gray-100 */
+
+/* Give key surfaces a visible border. Outlines are painted after descendants and
+   follow border-radius, so opaque headers/overflow can't clip them. */
+
+/* Editor category cards + separators between their items */
+[data-contrast="high"] .category { border-color: var(--foreground); }
+[data-contrast="high"] .category .item { border-bottom-color: var(--hc-separator) !important; }
+
+/* Header separator lines: menu view header + modal header dividers */
+[data-contrast="high"] .menu-header { border-bottom-color: var(--foreground); }
+[data-contrast="high"] .border-b.-mx-4 { border-bottom-color: var(--foreground); }
+
+/* Card surfaces (frontpage sections, Open a Menu, template cards) and
+   modals / popovers (rounded-lg shadow-xl) get a strong outline */
+[data-contrast="high"] .rounded-2xl.shadow-lg,
+[data-contrast="high"] .rounded-2xl.shadow-xl,
+[data-contrast="high"] .rounded-lg.shadow-xl {
+  outline: 2px solid var(--foreground);
+  outline-offset: -2px;
+}
+
+/* In high contrast, teal accent text everywhere (headings, card/modal titles,
+   menu names, import text, buttons) becomes foreground for readability. */
+[data-contrast="high"] .text-\[var\(--main-text-color\)\],
+[data-contrast="high"] .text-\[var\(--main-text-color-hover\)\],
+[data-contrast="high"] .hover\:text-\[var\(--main-text-color\)\]:hover,
+[data-contrast="high"] .hover\:text-\[var\(--main-text-color-hover\)\]:hover { color: var(--foreground); }
+
+/* "New Menu" / "Open existing" internals: cards, saved-menu rows, name inputs, dropzone */
+[data-contrast="high"] .rounded-xl.cursor-pointer.group,
+[data-contrast="high"] .rounded-xl.shadow.p-6 { border-color: var(--hc-border); }
+[data-contrast="high"] .rounded-xl.cursor-pointer.group:hover { border-color: var(--foreground); }
+[data-contrast="high"] .rounded-lg.group {
+  outline: 1px solid var(--hc-border);
+  outline-offset: -1px;
+}
+[data-contrast="high"] .rounded-lg.group:hover { outline-color: var(--foreground); }
+[data-contrast="high"] .border-dashed.rounded-xl { border-color: var(--foreground); }
+
+/* Accent-teal buttons (Back to templates, Add person) get a strong border */
+[data-contrast="high"] .border-\[rgba\(158\,198\,204\,0\.2\)\] { border-color: var(--foreground); }
+
+/* Modal header close (X) button */
+[data-contrast="high"] .rounded-full.border-gray-200 { border-color: var(--foreground); }
+
+/* Theme Settings option cards: unselected use the soft tone, the active option
+   gets the full foreground border so it stays the strongest, not the lightest. */
+[data-contrast="high"] label.rounded-lg.border-gray-200 { border-color: var(--hc-separator); }
+[data-contrast="high"] label.rounded-lg.border-gray-200:hover { border-color: var(--foreground); }
+[data-contrast="high"] label.border-\[var\(--main-text-color\)\] {
+  border-color: var(--foreground);
+  box-shadow: inset 0 0 0 1px var(--foreground);
+}
+
+/* Floating mode switcher: strengthen its existing borders (avoid a second ring) */
+@media (min-width: 768px) {
+  [data-contrast="high"] .fixed.bottom-4.right-4.z-50.md\:border-\[var\(--main-text-color\)\] {
+    border-color: var(--foreground);
+  }
+}
+[data-contrast="high"] [data-onboarding="mode-selector"] { border-top-color: var(--foreground); }
+
+/* Editor toolbar + its buttons, both strong to match */
+[data-contrast="high"] .toolbar { border-bottom-color: var(--foreground); }
+[data-contrast="high"] .toolbar button { border-color: var(--foreground); }
+
+/* Menu toolbar accent triggers (New Menu / Export) get a foreground border + text */
+[data-contrast="high"] button.border-\[var\(--main-text-color\)\] {
+  color: var(--foreground);
+  border-color: var(--foreground);
+}
+
+/* Icon picker entries: subtle resting border, full strength only on hover */
+[data-contrast="high"] .grid.grid-cols-2.gap-3 > button { border: 1px solid var(--hc-separator); }
+[data-contrast="high"] .grid.grid-cols-2.gap-3 > button:hover { border-color: var(--foreground); }
+
+/* Dropdown menus: strong panel border + one separator between adjacent items.
+   button + button avoids doubling up with the existing divider <div>s. */
+[data-contrast="high"] .rounded-md.shadow-lg.z-50 { border-color: var(--foreground); }
+[data-contrast="high"] .rounded-md.shadow-lg.z-50 > .py-1 > button + button { border-top: 1px solid var(--hc-separator); }
+[data-contrast="high"] .rounded-md.shadow-lg.z-50 .border-t { border-top-color: var(--hc-separator); }
+
+/* Make hover clearly perceptible in high contrast */
+[data-color-mode="light"][data-contrast="high"] .hover\:bg-gray-50:hover,
+[data-color-mode="light"][data-contrast="high"] .hover\:bg-gray-100:hover { background-color: #cbd5e1; }
+[data-color-mode="dark"][data-contrast="high"] .dark\:hover\:bg-gray-700:hover,
+[data-color-mode="dark"][data-contrast="high"] .dark\:hover\:bg-gray-500:hover { background-color: #64748b; }
 
 /* High contrast focus rings - more visible for users with low vision */
 [data-contrast="high"] *:focus-visible {
   outline: 3px solid var(--border-focus) !important;
   outline-offset: 4px;
+}
+
+/* Move the focus ring off the inner editable field and onto the whole editor
+   wrapper (the element directly wrapping .rich-text-editor). */
+[data-contrast="high"] .ProseMirror:focus-visible,
+[data-contrast="high"] .ProseMirror:focus { outline: none !important; }
+[data-contrast="high"] :has(> .rich-text-editor):focus-within {
+  outline: 3px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 /* High contrast links get underlines */
@@ -337,8 +567,6 @@ header {
 
 [data-color-mode="dark"] .category .title {
   background-color: var(--main-bg-color) !important;
-  border-top-left-radius: 0.74rem;
-  border-top-right-radius: 0.74rem;
 }
 
 [data-color-mode="dark"] .category .item .item-note {
@@ -357,8 +585,10 @@ header {
   color: white;
   font-weight: bold;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-  border-top-left-radius: 0.75rem;
-  border-top-right-radius: 0.75rem;
+  /* Match the container's inner radius (1rem outer − 1px border) so the header's
+     corners don't overhang and clip .category's border. */
+  border-top-left-radius: calc(1rem - 1px);
+  border-top-right-radius: calc(1rem - 1px);
 }
 
 /* Prevent gradients from applying to buttons and dropdown items */
@@ -733,4 +963,10 @@ button.flex.items-center span {
 /* Settings switch background in dark mode */
 [data-color-mode="dark"] .settings-switch:not([aria-checked="true"]) {
   background-color: rgb(75 85 99); /* gray-600 */
+}
+
+/* Restore the rounded toggle handle, which the global "button span" reset
+   above (border-radius: 0 !important) would otherwise flatten into a rectangle */
+.settings-switch span {
+  border-radius: 9999px !important;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { IconGear, IconX } from '../icons';
+import { IconSliders, IconX } from '../icons';
 import { useTheme } from '../ThemeProvider';
 import { ColorMode, VisionTheme, ContrastLevel } from '../../types';
 
@@ -103,7 +103,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   const handleContrastChange = (value: ContrastLevel) => {
-    setPreferences({ ...preferences, contrast: value });
+    setPreferences({ ...preferences, contrast: value, contrastExplicit: true });
   };
 
   return (
@@ -131,10 +131,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 relative z-10"
         >
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <div className="flex items-center justify-center h-10 w-10 rounded-full bg-[var(--main-bg-color)]/20 mr-3">
-                <IconGear className="h-5 w-5 text-[var(--main-text-color)]" aria-hidden="true" />
+                <IconSliders className="h-5 w-5 text-[var(--main-text-color)]" aria-hidden="true" />
               </div>
               <h2 id="settings-modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                 Theme Settings
@@ -143,12 +143,13 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <button
               ref={closeButtonRef}
               onClick={onClose}
-              className="rounded-full p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[var(--main-text-color)]"
+              className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--main-text-color)]"
               aria-label="Close settings"
             >
               <IconX className="h-5 w-5" />
             </button>
           </div>
+          <div className="border-b border-gray-200 dark:border-gray-700 -mx-4 sm:-mx-6 mb-6"></div>
 
           {/* Color Mode Section */}
           <fieldset className="mb-6">
@@ -159,7 +160,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               {COLOR_MODE_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className={`flex items-start p-3 rounded-lg border cursor-pointer transition-colors ${
+                  className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
                     preferences.colorMode === option.value
                       ? 'border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
                       : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -172,8 +173,20 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     checked={preferences.colorMode === option.value}
                     onChange={() => handleColorModeChange(option.value)}
                     aria-describedby={`colorMode-${option.value}-desc`}
-                    className="mt-1 h-4 w-4 text-[var(--main-text-color)] border-gray-300 focus:ring-[var(--main-text-color)]"
+                    className="peer sr-only"
                   />
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--main-text-color)] peer-focus-visible:ring-offset-2 ${
+                      preferences.colorMode === option.value
+                        ? 'border-[var(--main-text-color)]'
+                        : 'border-gray-300 dark:border-gray-500'
+                    }`}
+                  >
+                    {preferences.colorMode === option.value && (
+                      <span className="h-2 w-2 rounded-full bg-[var(--main-text-color)]" />
+                    )}
+                  </span>
                   <div className="ml-3">
                     <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
                       {option.label}
@@ -196,7 +209,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               {VISION_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className={`flex items-start p-3 rounded-lg border cursor-pointer transition-colors ${
+                  className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
                     preferences.vision === option.value
                       ? 'border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
                       : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -209,8 +222,20 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     checked={preferences.vision === option.value}
                     onChange={() => handleVisionChange(option.value)}
                     aria-describedby={`vision-${option.value}-desc`}
-                    className="mt-1 h-4 w-4 text-[var(--main-text-color)] border-gray-300 focus:ring-[var(--main-text-color)]"
+                    className="peer sr-only"
                   />
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--main-text-color)] peer-focus-visible:ring-offset-2 ${
+                      preferences.vision === option.value
+                        ? 'border-[var(--main-text-color)]'
+                        : 'border-gray-300 dark:border-gray-500'
+                    }`}
+                  >
+                    {preferences.vision === option.value && (
+                      <span className="h-2 w-2 rounded-full bg-[var(--main-text-color)]" />
+                    )}
+                  </span>
                   <div className="ml-3">
                     <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
                       {option.label}

@@ -12,11 +12,11 @@ export default function IconNotSet({ className = "" }: IconNotSetProps) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <circle 
-        cx="10" 
-        cy="10" 
-        r="3" 
-        fill="rgba(139, 185, 193, 0.8)" 
+      <circle
+        cx="10"
+        cy="10"
+        r="3"
+        className="[fill:var(--icon-not-set-fill)]"
       />
     </svg>
   );

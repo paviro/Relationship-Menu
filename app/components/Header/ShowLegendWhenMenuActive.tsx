@@ -147,36 +147,36 @@ export default function ShowLegendWhenMenuActive({ showAsOverlay = false, onClos
     <div className="flex flex-wrap gap-x-2.5 gap-y-1.5 justify-between sm:justify-around">
       <div className="flex items-center">
         <IconMust className="w-5 h-5 flex-shrink-0" />
-        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-blue-500">
+        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-[color:var(--icon-must)]">
           <span className="lg:hidden">MUST</span>
           <span className="hidden lg:inline">MUST HAVE</span>
         </span>
       </div>
       <div className="flex items-center">
         <IconLike className="w-5 h-5 flex-shrink-0" />
-        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-green-600">
+        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-[color:var(--icon-like)]">
           <span className="lg:hidden">LIKE</span>
           <span className="hidden lg:inline">WOULD LIKE</span>
         </span>
       </div>
       <div className="flex items-center">
         <IconMaybe className="w-5 h-5 flex-shrink-0" />
-        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-amber-600">MAYBE</span>
+        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-[color:var(--icon-maybe)]">MAYBE</span>
       </div>
       <div className="flex items-center">
         <IconPreferNot className="w-5 h-5 flex-shrink-0" />
-        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-slate-400">PREFER NOT</span>
+        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-[color:var(--icon-prefer-not)]">PREFER NOT</span>
       </div>
       <div className="flex items-center">
         <IconOffLimit className="w-5 h-5 flex-shrink-0" />
-        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-red-600">
+        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-[color:var(--icon-off-limit)]">
           <span className="lg:hidden">NO-GO</span>
           <span className="hidden lg:inline">OFF LIMITS</span>
         </span>
       </div>
       <div className="flex items-center">
         <IconTalk className="w-5 h-5 flex-shrink-0" />
-        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-purple-500">
+        <span className="ml-1 text-[rgba(79,139,149,1)] dark:text-[color:var(--icon-talk)]">
           <span className="lg:hidden">TALK</span>
           <span className="hidden lg:inline">CONVERSATION</span>
         </span>
