@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExportButton } from './ExportButton';
 import { MenuButton } from './MenuButton';
+import { SettingsButton } from './SettingsButton';
 import { MenuData } from '../../../types';
 import { ToastType } from '../../../components/ui/Toast/ToastContext';
 
@@ -19,20 +20,23 @@ export function MenuToolbar({
 }: MenuToolbarProps) {
   return (
     <div className="flex w-full md:w-auto gap-2 justify-end">
-      {/* New Menu Button Component - 50% width on small screens */}
-      <div className="w-1/2 md:w-auto">
+      {/* New Menu Button Component - flexes to fill on small screens */}
+      <div className="flex-1 md:w-auto">
         <MenuButton />
       </div>
-      
-      {/* Share Button Component - 50% width on small screens */}
-      <div className="w-1/2 md:w-auto">
-        <ExportButton 
+
+      {/* Share Button Component - flexes to fill on small screens */}
+      <div className="flex-1 md:w-auto">
+        <ExportButton
           onJSONDownload={onJSONDownload}
           onExportPDF={onExportPDF}
           menuData={menuData}
           showToast={showToast}
         />
       </div>
+
+      {/* Settings Button Component - compact, opens the theme/accessibility modal */}
+      <SettingsButton />
     </div>
   );
 }
@@ -40,4 +44,5 @@ export function MenuToolbar({
 // Export individual components for direct use if needed
 export { ExportButton } from './ExportButton';
 export { MenuButton } from './MenuButton';
-export { FloatingModeSelector } from './FloatingModeSelector'; 
+export { SettingsButton } from './SettingsButton';
+export { FloatingModeSelector } from './FloatingModeSelector';
