@@ -4,6 +4,7 @@ import "./globals.css";
 import { ToastProvider } from "./components/ui/Toast";
 import LayoutWrapper from "./components/LayoutWrapper";
 import ThemeProvider from "./components/ThemeProvider";
+import { THEME_STORAGE_KEY } from "./utils/themeStorage";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -71,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `
               (function() {
                 try {
-                  var stored = localStorage.getItem('relationshipMenu.theme');
+                  var stored = localStorage.getItem('${THEME_STORAGE_KEY}');
                   var prefs = stored ? JSON.parse(stored) : {};
                   var colorMode = prefs.colorMode || 'system';
                   var vision = prefs.vision || 'default';

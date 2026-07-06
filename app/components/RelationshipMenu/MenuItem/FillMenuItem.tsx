@@ -71,7 +71,7 @@ export function FillMenuItem({
       // Render the icon in a button-like container but without arrow and interaction
       return (
         <div 
-          className={`inline-flex items-center justify-between px-1.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md ${
+          className={`hc-field inline-flex items-center justify-between px-1.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md ${
             selectedOption.bgColor
           }`}
           style={{ minWidth: '42px' }}  /* Match width of buttons with arrows */
@@ -88,7 +88,7 @@ export function FillMenuItem({
       <button 
         type="button"
         onClick={() => setIsPickerOpen((open) => !open)}
-        className={`inline-flex items-center px-1.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 ${
+        className={`hc-field inline-flex items-center px-1.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 ${
           iconType ? selectedOption.bgColor : 'bg-white dark:bg-gray-800'
         }`}
         aria-label="Select icon"

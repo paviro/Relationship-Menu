@@ -160,9 +160,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               {COLOR_MODE_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                  className={`hc-option flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
                     preferences.colorMode === option.value
-                      ? 'border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
+                      ? 'hc-option-active border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
                       : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
@@ -209,9 +209,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               {VISION_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                  className={`hc-option flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
                     preferences.vision === option.value
-                      ? 'border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
+                      ? 'hc-option-active border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
                       : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
@@ -255,9 +255,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               Contrast
             </legend>
             <label
-              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+              className={`hc-option flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
                 preferences.contrast === 'high'
-                  ? 'border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
+                  ? 'hc-option-active border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
                   : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
               }`}
             >

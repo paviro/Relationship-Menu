@@ -8,6 +8,7 @@ import {
   resolveColorMode,
   systemPrefersHighContrast,
   DEFAULT_THEME,
+  THEME_STORAGE_KEY,
 } from '../utils/themeStorage';
 
 type ThemeContextValue = {
@@ -50,10 +51,17 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
   const [resolvedColorMode, setResolvedColorMode] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
-  // Updates preferences and persists to storage
+  // Updates preferences and persists to storage.
+  // Contrast is only persisted when the user set it explicitly; otherwise it
+  // follows the system prefers-contrast setting and must not be baked into
+  // storage (which would strand the user in high contrast after the OS setting
+  // is removed).
   const setPreferences = useCallback((newPrefs: ThemePreferences) => {
     setPreferencesState(newPrefs);
-    saveThemePreferences(newPrefs);
+    const toPersist: ThemePreferences = newPrefs.contrastExplicit
+      ? newPrefs
+      : { ...newPrefs, contrast: 'normal' };
+    saveThemePreferences(toPersist);
     applyThemeToDocument(newPrefs);
     setResolvedColorMode(resolveColorMode(newPrefs));
   }, []);
@@ -118,19 +126,25 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     };
   }, [mounted, preferences]);
 
-  // Listen for theme change events triggered elsewhere
+  // Sync across tabs: a change written to localStorage in another tab fires a
+  // `storage` event here. Re-read, re-derive system contrast, and apply.
   useEffect(() => {
-    const handleExternalChange = (event: Event) => {
-      const customEvent = event as CustomEvent<ThemePreferences>;
-      if (customEvent.detail) {
-        setPreferencesState(customEvent.detail);
-        applyThemeToDocument(customEvent.detail);
-        setResolvedColorMode(resolveColorMode(customEvent.detail));
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== THEME_STORAGE_KEY) return;
+
+      const stored = getThemePreferences();
+      let finalPrefs = stored;
+      if (!stored.contrastExplicit && systemPrefersHighContrast()) {
+        finalPrefs = { ...stored, contrast: 'high' };
       }
+
+      setPreferencesState(finalPrefs);
+      applyThemeToDocument(finalPrefs);
+      setResolvedColorMode(resolveColorMode(finalPrefs));
     };
 
-    window.addEventListener('themePreferencesChanged', handleExternalChange);
-    return () => window.removeEventListener('themePreferencesChanged', handleExternalChange);
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const contextValue: ThemeContextValue = {

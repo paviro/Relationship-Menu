@@ -195,7 +195,7 @@ export function ExportButton({
       {/* Dropdown Menu */}
       {isDropdownOpen && (
         <div 
-          className="absolute mt-2 w-[280px] bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700"
+          className="hc-panel absolute mt-2 w-[280px] bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700"
           style={{ left: dropdownPosition.left, right: dropdownPosition.right }}
         >
           <div className="py-1">

@@ -137,7 +137,7 @@ export function IconPicker({ selectedIcon, onSelectIcon, isOpen, onClose, mode =
             key={option.value || 'null'}
             ref={index === 0 ? firstOptionRef : null}
             onClick={() => onSelectIcon(option.value)}
-            className={`p-2.5 rounded-lg transition-all hover:brightness-95 active:scale-[0.98] ${option.bgColor} flex justify-start items-center`}
+            className={`hc-picker-item p-2.5 rounded-lg transition-all hover:brightness-95 active:scale-[0.98] ${option.bgColor} flex justify-start items-center`}
             role="menuitemradio"
             aria-checked={selectedIcon === option.value}
             aria-label={`Select ${option.label} icon`}
@@ -168,7 +168,7 @@ export function IconButton({ selectedIcon, onClick }: IconButtonProps) {
     <button 
       type="button"
       onClick={onClick}
-      className={`flex items-center p-2 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mr-3 w-full sm:w-auto h-[42px] font-bold text-base box-border ${
+      className={`hc-field flex items-center p-2 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mr-3 w-full sm:w-auto h-[42px] font-bold text-base box-border ${
         selectedIcon ? selectedOption.bgColor : 'bg-white dark:bg-gray-800'
       }`}
       aria-label={label}

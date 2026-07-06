@@ -272,7 +272,16 @@
 [data-color-mode="dark"][data-contrast="high"] .dark\:text-gray-300 { color: #f3f4f6; } /* → gray-100 */
 
 /* Give key surfaces a visible border. Outlines are painted after descendants and
-   follow border-radius, so opaque headers/overflow can't clip them. */
+   follow border-radius, so opaque headers/overflow can't clip them.
+
+   NOTE ON SELECTOR STRATEGY: the rules below deliberately match shared *utility
+   shapes* (e.g. any card is `.rounded-2xl.shadow-lg`, any divider is
+   `.border-b.-mx-4`) so a single rule covers every instance app-wide — the same
+   approach as the muted-gray remaps above. This is intentional, not a per-component
+   coupling. Where a rule instead pinned one component's incidental layout classes
+   (dropdown panels, the floating mode switcher, icon-picker tiles, settings option
+   cards), it has been given a semantic `.hc-*` hook class on that component instead
+   — see `.hc-panel`, `.hc-mode-selector`, `.hc-picker-item`, `.hc-option` below. */
 
 /* Editor category cards + separators between their items */
 [data-contrast="high"] .category { border-color: var(--foreground); }
@@ -315,18 +324,20 @@
 /* Modal header close (X) button */
 [data-contrast="high"] .rounded-full.border-gray-200 { border-color: var(--foreground); }
 
-/* Theme Settings option cards: unselected use the soft tone, the active option
-   gets the full foreground border so it stays the strongest, not the lightest. */
-[data-contrast="high"] label.rounded-lg.border-gray-200 { border-color: var(--hc-separator); }
-[data-contrast="high"] label.rounded-lg.border-gray-200:hover { border-color: var(--foreground); }
-[data-contrast="high"] label.border-\[var\(--main-text-color\)\] {
+/* Theme Settings option cards (.hc-option): unselected use the soft tone, the
+   active option (.hc-option-active) gets the full foreground border so it stays
+   the strongest, not the lightest. */
+[data-contrast="high"] .hc-option:not(.hc-option-active) { border-color: var(--hc-separator); }
+[data-contrast="high"] .hc-option:not(.hc-option-active):hover { border-color: var(--foreground); }
+[data-contrast="high"] .hc-option-active {
   border-color: var(--foreground);
   box-shadow: inset 0 0 0 1px var(--foreground);
 }
 
-/* Floating mode switcher: strengthen its existing borders (avoid a second ring) */
+/* Floating mode switcher (.hc-mode-selector): strengthen its existing border
+   (avoid a second ring). The border only exists at md+, so scope to that. */
 @media (min-width: 768px) {
-  [data-contrast="high"] .fixed.bottom-4.right-4.z-50.md\:border-\[var\(--main-text-color\)\] {
+  [data-contrast="high"] .hc-mode-selector {
     border-color: var(--foreground);
   }
 }
@@ -342,15 +353,27 @@
   border-color: var(--foreground);
 }
 
-/* Icon picker entries: subtle resting border, full strength only on hover */
-[data-contrast="high"] .grid.grid-cols-2.gap-3 > button { border: 1px solid var(--hc-separator); }
-[data-contrast="high"] .grid.grid-cols-2.gap-3 > button:hover { border-color: var(--foreground); }
+/* Icon picker entries (.hc-picker-item): subtle resting border, full strength on hover */
+[data-contrast="high"] .hc-picker-item { border: 1px solid var(--hc-separator); }
+[data-contrast="high"] .hc-picker-item:hover { border-color: var(--foreground); }
 
-/* Dropdown menus: strong panel border + one separator between adjacent items.
-   button + button avoids doubling up with the existing divider <div>s. */
-[data-contrast="high"] .rounded-md.shadow-lg.z-50 { border-color: var(--foreground); }
-[data-contrast="high"] .rounded-md.shadow-lg.z-50 > .py-1 > button + button { border-top: 1px solid var(--hc-separator); }
-[data-contrast="high"] .rounded-md.shadow-lg.z-50 .border-t { border-top-color: var(--hc-separator); }
+/* Editable item controls (.hc-field): the icon-picker trigger and edit-mode
+   name input use weak gray borders that vanish in high contrast. */
+[data-contrast="high"] .hc-field { border-color: var(--foreground); }
+
+/* Edit-mode note editor (.hc-editor-box): the fill-mode editor is only shown
+   while focused, so it always carries the 3px focus outline below. The edit-mode
+   editor is persistent, so give it the same strong outline at rest to match. */
+[data-contrast="high"] .hc-editor-box {
+  outline: 3px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Dropdown menus (.hc-panel): strong panel border + one separator between adjacent
+   items. button + button avoids doubling up with the existing divider <div>s. */
+[data-contrast="high"] .hc-panel { border-color: var(--foreground); }
+[data-contrast="high"] .hc-panel > .py-1 > button + button { border-top: 1px solid var(--hc-separator); }
+[data-contrast="high"] .hc-panel .border-t { border-top-color: var(--hc-separator); }
 
 /* Make hover clearly perceptible in high contrast */
 [data-color-mode="light"][data-contrast="high"] .hover\:bg-gray-50:hover,

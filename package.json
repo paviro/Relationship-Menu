@@ -8,9 +8,6 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "next lint",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed",
     "postinstall": "node scripts/download-fonts.js"
   },
   "dependencies": {
@@ -33,7 +30,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/jspdf": "^1.3.3",
     "@types/node": "^20",

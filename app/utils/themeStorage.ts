@@ -8,6 +8,7 @@ export const DEFAULT_THEME: ThemePreferences = {
   colorMode: 'system',
   vision: 'default',
   contrast: 'normal',
+  contrastExplicit: false,
 };
 
 /**
@@ -82,12 +83,6 @@ export function saveThemePreferences(preferences: ThemePreferences): boolean {
 
   try {
     localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(preferences));
-
-    // Dispatch custom event so other components can react to the change
-    window.dispatchEvent(new CustomEvent('themePreferencesChanged', {
-      detail: preferences
-    }));
-
     return true;
   } catch (error) {
     console.error('Error saving theme preferences:', error);
