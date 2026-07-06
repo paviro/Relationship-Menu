@@ -62,7 +62,7 @@ export function EditMenuItem({
               type="text"
               value={item.name}
               onChange={(e) => onItemNameChange(catIndex, itemIndex, e.target.value)}
-              className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-50 order-first sm:order-last font-bold"
+              className="hc-field w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-50 order-first sm:order-last font-bold"
               placeholder="Edit item title..."
             />
             <div className="relative w-full sm:w-auto" ref={pickerWrapperRef}>
@@ -90,7 +90,7 @@ export function EditMenuItem({
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Notes
           </label>
-          <div className="border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+          <div className="hc-editor-box border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
             <RichTextEditor
               value={item.note || null}
               onChange={(richText) => onNoteChange(catIndex, itemIndex, richText)}
@@ -98,7 +98,7 @@ export function EditMenuItem({
             />
           </div>
         
-        <div className="mt-4 p-2 sm:p-3 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 flex flex-row justify-between items-center gap-2">
+        <div className="hc-field mt-4 p-2 sm:p-3 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 flex flex-row justify-between items-center gap-2">
           <div className="flex items-center">
             <button 
               type="button" 

@@ -4,11 +4,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { HexColorPicker } from 'react-colorful';
 import type { Node as PMNode } from '@tiptap/pm/model';
+import { useTheme } from '../../ThemeProvider';
 
 export function InlineColorPicker({ editor }: { editor: Editor }) {
   const [isOpen, setIsOpen] = useState(false);
-  const isDark = usePrefersDark();
-  const themeDefaultColor = isDark ? '#ffffff' : '#000000';
+  const { resolvedColorMode } = useTheme();
+  const themeDefaultColor = resolvedColorMode === 'dark' ? '#ffffff' : '#000000';
   const [currentColor, setCurrentColor] = useState<string>(() => getCurrentColor(editor) ?? themeDefaultColor);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -166,30 +167,6 @@ export function InlineColorPicker({ editor }: { editor: Editor }) {
       )}
     </div>
   );
-}
-
-function usePrefersDark(): boolean {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
-
-    setIsDark(mql.matches);
-
-    if (typeof mql.addEventListener === 'function') {
-      mql.addEventListener('change', handler);
-      return () => mql.removeEventListener('change', handler);
-    } else {
-      mql.addListener(handler);
-      return () => {
-        mql.removeListener(handler);
-      };
-    }
-  }, []);
-
-  return isDark;
 }
 
 function getCurrentColor(editor: Editor): string | null {

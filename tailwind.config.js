@@ -3,6 +3,7 @@ module.exports = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  // Dark mode is configured in app/globals.css via `@custom-variant dark`.
   theme: {
     extend: {
       fontFamily: {

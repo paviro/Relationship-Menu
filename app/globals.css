@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tie the `dark:` variant to the data-color-mode attribute, not prefers-color-scheme. */
+@custom-variant dark (&:where([data-color-mode="dark"], [data-color-mode="dark"] *));
+
 /* Rich Text Editor Styles */
 .ProseMirror {
   outline: none;
@@ -31,12 +34,26 @@
   text-decoration: line-through;
 }
 
+/* ============================================
+   THEME SYSTEM
+   Uses data attributes on <html> for theme control:
+   - data-color-mode: "light" | "dark"
+   - data-vision: "default" | "pd" | "tritan"
+   - data-contrast: "normal" | "high"
+   ============================================ */
+
+/* Base light theme variables */
 :root {
   --main-bg-color: rgba(148, 188, 194, 0.9);
   --main-text-color: rgba(79, 139, 149, 1);
   --main-text-color-hover: rgba(63, 115, 123, 1);
   --background: #ffffff;
   --foreground: #111111;
+  --surface: #ffffff;
+  --surface-secondary: #f8fafc;
+  --border-color: rgba(0, 0, 0, 0.07);
+  --border-focus: rgba(79, 139, 149, 0.5);
+  --header-bg: rgba(158, 198, 204, 0.85);
   --font-nunito: 'Nunito', sans-serif;
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.08);
@@ -45,21 +62,482 @@
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
+/* Dark mode via data attribute */
+[data-color-mode="dark"] {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --surface: #1e293b;
+  --surface-secondary: #334155;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --border-focus: rgba(148, 188, 194, 0.5);
+  --main-bg-color: rgba(45, 85, 95, 0.9);
+  --header-bg: rgba(45, 85, 95, 0.85);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+}
+
+/* Fallback for initial load before JS runs - uses system preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-color-mode]) {
+    --background: #0f172a;
+    --foreground: #f1f5f9;
+    --surface: #1e293b;
+    --surface-secondary: #334155;
+    --border-color: rgba(255, 255, 255, 0.05);
+    --border-focus: rgba(148, 188, 194, 0.5);
+    --main-bg-color: rgba(45, 85, 95, 0.9);
+    --header-bg: rgba(45, 85, 95, 0.85);
+    --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* ============================================
+   VISION THEMES
+   pd = Protanopia/Deuteranopia (red-green)
+   tritan = Tritanopia (blue-yellow)
+   ============================================ */
+
+/* Protanopia/Deuteranopia - shifts to blue-orange spectrum */
+[data-vision="pd"] {
+  --main-bg-color: rgba(100, 149, 237, 0.9);
+  --main-text-color: rgba(70, 130, 180, 1);
+  --main-text-color-hover: rgba(55, 100, 145, 1);
+  --header-bg: rgba(100, 149, 237, 0.85);
+}
+
+[data-color-mode="dark"][data-vision="pd"] {
+  --main-bg-color: rgba(65, 105, 165, 0.9);
+  --header-bg: rgba(65, 105, 165, 0.85);
+}
+
+/* Tritanopia - shifts to pink-cyan spectrum */
+[data-vision="tritan"] {
+  --main-bg-color: rgba(199, 146, 182, 0.9);
+  --main-text-color: rgba(165, 105, 145, 1);
+  --main-text-color-hover: rgba(140, 85, 120, 1);
+  --header-bg: rgba(199, 146, 182, 0.85);
+}
+
+[data-color-mode="dark"][data-vision="tritan"] {
+  --main-bg-color: rgba(140, 95, 125, 0.9);
+  --header-bg: rgba(140, 95, 125, 0.85);
+}
+
+/* ============================================
+   SEMANTIC PREFERENCE ICON COLORS
+   One hue per level drives the icon stroke. Default (non-color-vision) modes
+   use hand-picked pastel fills, picker tiles, and marker gradients so the look
+   matches the original design. In a color-vision mode (pd/tritan) those fills,
+   tiles, and markers are instead derived from the accessible hue via color-mix,
+   so overriding the hues is enough to recolor everything.
+   ============================================ */
+
+:root {
+  --icon-must: #3b82f6;
+  --icon-like: #22c55e;
+  --icon-maybe: #f59e0b;
+  --icon-prefer-not: #64748b;
+  --icon-off-limit: #ef4444;
+  --icon-talk: #8b5cf6;
+
+  /* Original hand-picked pale circle fills (light mode). */
+  --icon-must-fill: #DEF0FF;
+  --icon-like-fill: #EAFFED;
+  --icon-maybe-fill: #FFF6E6;
+  --icon-prefer-not-fill: #E2E8F0;
+  --icon-off-limit-fill: #FFE9E9;
+  --icon-talk-fill: #F0EDFF;
+
+  /* Original hand-picked icon-picker tiles (light mode). */
+  --icon-must-tile: #DEF0FF;
+  --icon-like-tile: #E6F7EC;
+  --icon-maybe-tile: #FFF6C5;
+  --icon-prefer-not-tile: #E2E8F0;
+  --icon-off-limit-tile: #FFEBEB;
+  --icon-talk-tile: #F0EDFF;
+
+  --icon-not-set-fill: rgba(139, 185, 193, 0.8);
+  --icon-not-set-tile: #f5f5f5;
+}
+
+/* Dark: circle fills become the solid hue, tiles a translucent hue */
+[data-color-mode="dark"] {
+  --icon-must: #1d4ed8;
+  --icon-like: #15803d;
+  --icon-maybe: #d97706;
+  --icon-prefer-not: #334155;
+  --icon-off-limit: #991b1b;
+  --icon-talk: #8b5cf6;
+
+  --icon-must-fill: var(--icon-must);
+  --icon-like-fill: var(--icon-like);
+  --icon-maybe-fill: var(--icon-maybe);
+  --icon-prefer-not-fill: var(--icon-prefer-not);
+  --icon-off-limit-fill: var(--icon-off-limit);
+  --icon-talk-fill: var(--icon-talk);
+
+  /* Original hand-picked icon-picker tiles (dark mode). */
+  --icon-must-tile: rgba(59, 130, 246, 0.5);
+  --icon-like-tile: rgba(34, 197, 94, 0.5);
+  --icon-maybe-tile: rgba(245, 158, 11, 0.5);
+  --icon-prefer-not-tile: rgba(100, 116, 139, 0.5);
+  --icon-off-limit-tile: rgba(239, 68, 68, 0.5);
+  --icon-talk-tile: rgba(139, 92, 246, 0.5);
+
+  --icon-not-set-tile: #374151;
+}
+
+/* Protanopia/Deuteranopia (red-green): blue/yellow/orange axis (Okabe-Ito) */
+[data-vision="pd"] {
+  --icon-must: #0072b2;
+  --icon-like: #56b4e9;
+  --icon-maybe: #e6c200;
+  --icon-prefer-not: #6b7280;
+  --icon-off-limit: #d55e00;
+  --icon-talk: #cc79a7;
+}
+[data-color-mode="dark"][data-vision="pd"] {
+  --icon-must: #4a97c9;
+  --icon-like: #7bc3ed;
+  --icon-maybe: #f0d43c;
+  --icon-prefer-not: #9ca3af;
+  --icon-off-limit: #e67a2e;
+  --icon-talk: #d993bc;
+}
+
+/* Tritanopia (blue-yellow): red<->teal diverging + orange */
+[data-vision="tritan"] {
+  --icon-must: #008b8b;
+  --icon-like: #5fbebe;
+  --icon-maybe: #6b7280;
+  --icon-prefer-not: #e8968b;
+  --icon-off-limit: #c1121f;
+  --icon-talk: #c77400;
+}
+[data-color-mode="dark"][data-vision="tritan"] {
+  --icon-must: #33a6a6;
+  --icon-like: #85d0d0;
+  --icon-maybe: #9ca3af;
+  --icon-prefer-not: #f0b4ac;
+  --icon-off-limit: #e0313e;
+  --icon-talk: #e08a1e;
+}
+
+/* In a color-vision mode the circle fills and picker tiles are derived from the
+   accessible hue instead of the original hand-picked pastels. */
+[data-vision="pd"], [data-vision="tritan"] {
+  --icon-must-fill: color-mix(in srgb, var(--icon-must) 18%, #fff);
+  --icon-like-fill: color-mix(in srgb, var(--icon-like) 18%, #fff);
+  --icon-maybe-fill: color-mix(in srgb, var(--icon-maybe) 18%, #fff);
+  --icon-prefer-not-fill: color-mix(in srgb, var(--icon-prefer-not) 18%, #fff);
+  --icon-off-limit-fill: color-mix(in srgb, var(--icon-off-limit) 18%, #fff);
+  --icon-talk-fill: color-mix(in srgb, var(--icon-talk) 18%, #fff);
+
+  --icon-must-tile: color-mix(in srgb, var(--icon-must) 20%, #fff);
+  --icon-like-tile: color-mix(in srgb, var(--icon-like) 20%, #fff);
+  --icon-maybe-tile: color-mix(in srgb, var(--icon-maybe) 20%, #fff);
+  --icon-prefer-not-tile: color-mix(in srgb, var(--icon-prefer-not) 20%, #fff);
+  --icon-off-limit-tile: color-mix(in srgb, var(--icon-off-limit) 20%, #fff);
+  --icon-talk-tile: color-mix(in srgb, var(--icon-talk) 20%, #fff);
+}
+[data-color-mode="dark"][data-vision="pd"], [data-color-mode="dark"][data-vision="tritan"] {
+  --icon-must-fill: var(--icon-must);
+  --icon-like-fill: var(--icon-like);
+  --icon-maybe-fill: var(--icon-maybe);
+  --icon-prefer-not-fill: var(--icon-prefer-not);
+  --icon-off-limit-fill: var(--icon-off-limit);
+  --icon-talk-fill: var(--icon-talk);
+
+  --icon-must-tile: color-mix(in srgb, var(--icon-must) 50%, transparent);
+  --icon-like-tile: color-mix(in srgb, var(--icon-like) 50%, transparent);
+  --icon-maybe-tile: color-mix(in srgb, var(--icon-maybe) 50%, transparent);
+  --icon-prefer-not-tile: color-mix(in srgb, var(--icon-prefer-not) 50%, transparent);
+  --icon-off-limit-tile: color-mix(in srgb, var(--icon-off-limit) 50%, transparent);
+  --icon-talk-tile: color-mix(in srgb, var(--icon-talk) 50%, transparent);
+}
+
+/* ============================================
+   Text-highlight markers behind item names.
+   Default (no color-vision) uses the original hand-tuned per-level gradients;
+   color-vision modes derive the gradient from the accessible icon hues.
+   ============================================ */
+
+/* Default light gradients */
+.item-marker-must {
+  background-image: linear-gradient(-100deg, rgba(108,188,250,0.2), rgba(108,188,250,0.5) 95%, rgba(108,188,250,0.1));
+}
+.item-marker-like {
+  background-image: linear-gradient(-100deg, rgba(135,231,126,0.2), rgba(135,231,126,0.5) 95%, rgba(135,231,126,0.1));
+}
+.item-marker-maybe {
+  background-image: linear-gradient(-100deg, rgba(227,210,100,0.2), rgba(255,230,107,0.5) 95%, rgba(227,210,100,0.1));
+}
+.item-marker-prefer-not {
+  background-image: linear-gradient(-100deg, rgba(148,163,184,0.2), rgba(148,163,184,0.5) 95%, rgba(148,163,184,0.1));
+}
+.item-marker-off-limit {
+  background-image: linear-gradient(-100deg, rgba(197,110,11,0.2), rgba(210,102,102,0.5) 95%, rgba(197,110,11,0.1));
+}
+
+/* Default dark gradients */
+[data-color-mode="dark"] .item-marker-must {
+  background-image: linear-gradient(-100deg, rgba(59,130,246,0.3), rgba(59,130,246,0.7) 95%, rgba(59,130,246,0.3));
+}
+[data-color-mode="dark"] .item-marker-like {
+  background-image: linear-gradient(-100deg, rgba(34,197,94,0.3), rgba(34,197,94,0.7) 95%, rgba(34,197,94,0.3));
+}
+[data-color-mode="dark"] .item-marker-maybe {
+  background-image: linear-gradient(-100deg, rgba(245,158,11,0.3), rgba(245,158,11,0.7) 95%, rgba(245,158,11,0.3));
+}
+[data-color-mode="dark"] .item-marker-prefer-not {
+  background-image: linear-gradient(-100deg, rgba(100,116,139,0.3), rgba(100,116,139,0.7) 95%, rgba(100,116,139,0.3));
+}
+[data-color-mode="dark"] .item-marker-off-limit {
+  background-image: linear-gradient(-100deg, rgba(239,68,68,0.3), rgba(239,68,68,0.7) 95%, rgba(239,68,68,0.3));
+}
+
+/* Color-vision override: derive the gradient from the accessible icon hue */
+[data-vision="pd"] .item-marker-must,
+[data-vision="pd"] .item-marker-like,
+[data-vision="pd"] .item-marker-maybe,
+[data-vision="pd"] .item-marker-prefer-not,
+[data-vision="pd"] .item-marker-off-limit,
+[data-vision="tritan"] .item-marker-must,
+[data-vision="tritan"] .item-marker-like,
+[data-vision="tritan"] .item-marker-maybe,
+[data-vision="tritan"] .item-marker-prefer-not,
+[data-vision="tritan"] .item-marker-off-limit {
+  background-image: linear-gradient(
+    -100deg,
+    color-mix(in srgb, var(--marker-hue) 22%, transparent),
+    color-mix(in srgb, var(--marker-hue) 52%, transparent) 95%,
+    color-mix(in srgb, var(--marker-hue) 12%, transparent)
+  );
+}
+.item-marker-must { --marker-hue: var(--icon-must); }
+.item-marker-like { --marker-hue: var(--icon-like); }
+.item-marker-maybe { --marker-hue: var(--icon-maybe); }
+.item-marker-prefer-not { --marker-hue: var(--icon-prefer-not); }
+.item-marker-off-limit { --marker-hue: var(--icon-off-limit); }
+
+/* Legend labels are per-level colored only in dark mode; default keeps the
+   original Tailwind hues, color-vision modes recolor them to the accessible hue. */
+[data-color-mode="dark"][data-vision="pd"] .legend-must,
+[data-color-mode="dark"][data-vision="tritan"] .legend-must { color: var(--icon-must); }
+[data-color-mode="dark"][data-vision="pd"] .legend-like,
+[data-color-mode="dark"][data-vision="tritan"] .legend-like { color: var(--icon-like); }
+[data-color-mode="dark"][data-vision="pd"] .legend-maybe,
+[data-color-mode="dark"][data-vision="tritan"] .legend-maybe { color: var(--icon-maybe); }
+[data-color-mode="dark"][data-vision="pd"] .legend-prefer-not,
+[data-color-mode="dark"][data-vision="tritan"] .legend-prefer-not { color: var(--icon-prefer-not); }
+[data-color-mode="dark"][data-vision="pd"] .legend-off-limit,
+[data-color-mode="dark"][data-vision="tritan"] .legend-off-limit { color: var(--icon-off-limit); }
+[data-color-mode="dark"][data-vision="pd"] .legend-talk,
+[data-color-mode="dark"][data-vision="tritan"] .legend-talk { color: var(--icon-talk); }
+
+/* ============================================
+   HIGH CONTRAST MODE
+   Increases contrast ratios for better visibility
+   ============================================ */
+
+[data-contrast="high"] {
+  --foreground: #000000;
+  --border-color: rgba(0, 0, 0, 0.25);
+  --border-focus: rgba(0, 0, 0, 0.8);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  /* Softer border for chip-like controls; full --foreground reads as "selected". */
+  --hc-border: #4b5563;
+  --hc-separator: rgba(0, 0, 0, 0.35);
+  /* Clearly perceptible hover background for the current color mode. */
+  --hc-hover-bg: #cbd5e1;
+}
+
+[data-color-mode="dark"][data-contrast="high"] {
+  --foreground: #ffffff;
+  --border-color: rgba(255, 255, 255, 0.25);
+  --border-focus: rgba(255, 255, 255, 0.8);
+  --hc-border: #cbd5e1;
+  --hc-separator: rgba(255, 255, 255, 0.35);
+  --hc-hover-bg: #64748b;
+}
+
+/* Pull muted Tailwind grays toward the strong foreground, per color mode. */
+
+/* Light: darken muted secondary text */
+[data-color-mode="light"][data-contrast="high"] .text-gray-400 { color: #374151; } /* → gray-700 */
+[data-color-mode="light"][data-contrast="high"] .text-gray-500 { color: #1f2937; } /* → gray-800 */
+[data-color-mode="light"][data-contrast="high"] .text-gray-600 { color: #111827; } /* → gray-900 */
+
+/* Dark: lighten muted secondary text */
+[data-color-mode="dark"][data-contrast="high"] .dark\:text-gray-500 { color: #d1d5db; } /* → gray-300 */
+[data-color-mode="dark"][data-contrast="high"] .dark\:text-gray-400 { color: #e5e7eb; } /* → gray-200 */
+[data-color-mode="dark"][data-contrast="high"] .dark\:text-gray-300 { color: #f3f4f6; } /* → gray-100 */
+
+/* Give key surfaces a visible border. Outlines are painted after descendants and
+   follow border-radius, so opaque headers/overflow can't clip them.
+
+   NOTE ON SELECTOR STRATEGY: the rules below deliberately match shared *utility
+   shapes* (e.g. any card is `.rounded-2xl.shadow-lg`, any divider is
+   `.border-b.-mx-4`) so a single rule covers every instance app-wide — the same
+   approach as the muted-gray remaps above. This is intentional, not a per-component
+   coupling. Where a rule instead pinned one component's incidental layout classes
+   (dropdown panels, the floating mode switcher, icon-picker tiles, settings option
+   cards), it has been given a semantic `.hc-*` hook class on that component instead
+   — see `.hc-panel`, `.hc-mode-selector`, `.hc-picker-item`, `.hc-option` below. */
+
+/* Editor category cards + separators between their items */
+[data-contrast="high"] .category { border-color: var(--foreground); }
+[data-contrast="high"] .category .item { border-bottom-color: var(--hc-separator) !important; }
+
+/* Header separator lines: menu view header + modal header dividers */
+[data-contrast="high"] .menu-header { border-bottom-color: var(--foreground); }
+[data-contrast="high"] .border-b.-mx-4 { border-bottom-color: var(--foreground); }
+
+/* Card surfaces (frontpage sections, Open a Menu, template cards) and
+   modals / popovers (rounded-lg shadow-xl) get a strong outline */
+[data-contrast="high"] .rounded-2xl.shadow-lg,
+[data-contrast="high"] .rounded-2xl.shadow-xl,
+[data-contrast="high"] .rounded-lg.shadow-xl {
+  outline: 2px solid var(--foreground);
+  outline-offset: -2px;
+}
+
+/* In high contrast, teal accent text everywhere (headings, card/modal titles,
+   menu names, import text, buttons) becomes foreground for readability. */
+[data-contrast="high"] .text-\[var\(--main-text-color\)\],
+[data-contrast="high"] .text-\[var\(--main-text-color-hover\)\],
+[data-contrast="high"] .hover\:text-\[var\(--main-text-color\)\]:hover,
+[data-contrast="high"] .hover\:text-\[var\(--main-text-color-hover\)\]:hover { color: var(--foreground); }
+
+/* "New Menu" / "Open existing" internals: cards, saved-menu rows, name inputs, dropzone */
+[data-contrast="high"] .rounded-xl.cursor-pointer.group,
+[data-contrast="high"] .rounded-xl.shadow.p-6 { border-color: var(--hc-border); }
+[data-contrast="high"] .rounded-xl.cursor-pointer.group:hover { border-color: var(--foreground); }
+[data-contrast="high"] .rounded-lg.group {
+  outline: 1px solid var(--hc-border);
+  outline-offset: -1px;
+}
+[data-contrast="high"] .rounded-lg.group:hover { outline-color: var(--foreground); }
+[data-contrast="high"] .border-dashed.rounded-xl { border-color: var(--foreground); }
+
+/* Accent-teal buttons (Back to templates, Add person) get a strong border */
+[data-contrast="high"] .border-\[rgba\(158\,198\,204\,0\.2\)\] { border-color: var(--foreground); }
+
+/* Modal header close (X) button */
+[data-contrast="high"] .rounded-full.border-gray-200 { border-color: var(--foreground); }
+
+/* Theme Settings option cards (.hc-option): unselected use the soft tone, the
+   active option (.hc-option-active) gets the full foreground border so it stays
+   the strongest, not the lightest. */
+[data-contrast="high"] .hc-option:not(.hc-option-active) { border-color: var(--hc-separator); }
+[data-contrast="high"] .hc-option:not(.hc-option-active):hover { border-color: var(--foreground); }
+[data-contrast="high"] .hc-option-active {
+  border-color: var(--foreground);
+  box-shadow: inset 0 0 0 1px var(--foreground);
+}
+
+/* Floating mode switcher (.hc-mode-selector): strengthen its existing border
+   (avoid a second ring). The border only exists at md+, so scope to that. */
+@media (min-width: 768px) {
+  [data-contrast="high"] .hc-mode-selector {
+    border-color: var(--foreground);
+  }
+}
+[data-contrast="high"] [data-onboarding="mode-selector"] { border-top-color: var(--foreground); }
+
+/* Editor toolbar + its buttons, both strong to match */
+[data-contrast="high"] .toolbar { border-bottom-color: var(--foreground); }
+[data-contrast="high"] .toolbar button { border-color: var(--foreground); }
+
+/* Menu toolbar accent triggers (New Menu / Export) get a foreground border + text */
+[data-contrast="high"] button.border-\[var\(--main-text-color\)\] {
+  color: var(--foreground);
+  border-color: var(--foreground);
+}
+
+/* Icon picker entries (.hc-picker-item): subtle resting border, full strength on hover */
+[data-contrast="high"] .hc-picker-item { border: 1px solid var(--hc-separator); }
+[data-contrast="high"] .hc-picker-item:hover { border-color: var(--foreground); }
+
+/* Editable item controls (.hc-field): the icon-picker trigger and edit-mode
+   name input use weak gray borders that vanish in high contrast. */
+[data-contrast="high"] .hc-field { border-color: var(--foreground); }
+
+/* Edit-mode note editor (.hc-editor-box): the fill-mode editor is only shown
+   while focused, so it always carries the 3px focus outline below. The edit-mode
+   editor is persistent, so give it the same strong outline at rest to match. */
+[data-contrast="high"] .hc-editor-box {
+  outline: 3px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Dropdown menus (.hc-panel): strong panel border + one separator between adjacent
+   items. button + button avoids doubling up with the existing divider <div>s. */
+[data-contrast="high"] .hc-panel { border-color: var(--foreground); }
+[data-contrast="high"] .hc-panel > .py-1 > button + button { border-top: 1px solid var(--hc-separator); }
+[data-contrast="high"] .hc-panel .border-t { border-top-color: var(--hc-separator); }
+
+/* Make hover clearly perceptible in high contrast (per-mode value via --hc-hover-bg) */
+[data-color-mode="light"][data-contrast="high"] .hover\:bg-gray-50:hover,
+[data-color-mode="light"][data-contrast="high"] .hover\:bg-gray-100:hover { background-color: var(--hc-hover-bg); }
+[data-color-mode="dark"][data-contrast="high"] .dark\:hover\:bg-gray-700:hover,
+[data-color-mode="dark"][data-contrast="high"] .dark\:hover\:bg-gray-500:hover { background-color: var(--hc-hover-bg); }
+
+/* High contrast focus rings - more visible for users with low vision */
+[data-contrast="high"] *:focus-visible {
+  outline: 3px solid var(--border-focus) !important;
+  outline-offset: 4px;
+}
+
+/* Move the focus ring off the inner editable field and onto the whole editor
+   wrapper (the element directly wrapping .rich-text-editor). */
+[data-contrast="high"] .ProseMirror:focus-visible,
+[data-contrast="high"] .ProseMirror:focus { outline: none !important; }
+[data-contrast="high"] :has(> .rich-text-editor):focus-within {
+  outline: 3px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* High contrast links get underlines */
+[data-contrast="high"] a {
+  text-decoration: underline;
+}
+
+/* ============================================
+   TAILWIND THEME INTEGRATION
+   ============================================ */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-nunito);
 }
 
-@media (prefers-color-scheme: dark) {
+/* ============================================
+   FORCED COLORS MODE (Windows High Contrast)
+   Let the system handle colors entirely
+   ============================================ */
+
+@media (forced-colors: active) {
   :root {
-    --background: #0f172a;
-    --foreground: #f1f5f9;
-    --main-bg-color: rgba(45, 85, 95, 0.9);
-    --main-text-color: rgba(79, 139, 149, 1);
-    --main-text-color-hover: rgba(63, 115, 123, 1);
+    --main-bg-color: Canvas;
+    --main-text-color: CanvasText;
+    --background: Canvas;
+    --foreground: CanvasText;
+    --surface: Canvas;
+    --border-color: CanvasText;
+  }
+
+  /* Remove custom shadows in forced colors mode */
+  .category,
+  .legend,
+  header {
+    box-shadow: none !important;
   }
 }
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
 
 body {
   background-color: var(--background);
@@ -79,7 +557,7 @@ body {
 .content {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  gap: 16px; /* 4rem = 16px */
+  gap: 16px;
   padding: 0;
   margin: 0;
   justify-content: center;
@@ -88,20 +566,20 @@ body {
 /* Breakpoints to maintain consistent column counts and match original gap sizes */
 @media screen and (min-width: 640px) {
   .content {
-    gap: 20px; /* sm:gap-5 = 20px */
+    gap: 20px;
   }
 }
 
 @media screen and (min-width: 1024px) {
   .content {
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px; /* lg:gap-6 = 24px */
+    gap: 24px;
   }
 }
 
 @media screen and (min-width: 1280px) {
   .content {
-    gap: 32px; /* xl:gap-8 = 32px */
+    gap: 32px;
   }
 }
 
@@ -111,8 +589,12 @@ body {
   }
 }
 
+/* ============================================
+   HEADER
+   ============================================ */
+
 header {
-  background: rgba(158, 198, 204, 0.85);
+  background: var(--header-bg);
   color: white;
   font-weight: 700;
   font-size: 20px;
@@ -122,14 +604,11 @@ header {
   padding: 10px 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px); /* For Safari compatibility */
+  -webkit-backdrop-filter: blur(10px);
 }
 
-@media (prefers-color-scheme: dark) {
-  header {
-    background: rgba(45, 85, 95, 0.85);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
+[data-color-mode="dark"] header {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .title-bar {
@@ -159,24 +638,25 @@ header {
   line-height: 1.5;
 }
 
+/* ============================================
+   LEGEND
+   ============================================ */
+
 .legend {
   display: flex;
-  background: white;
+  background: var(--surface);
   color: var(--main-text-color);
   padding: 10px;
   font-size: 18px;
   text-transform: uppercase;
   font-weight: 600;
   justify-content: space-around;
-  box-shadow: 0 0 0 2px white, 0.3em 0.3em 1em rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 2px var(--surface), 0.3em 0.3em 1em rgba(0, 0, 0, 0.2);
   margin: 0 20px 10px 20px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .legend {
-    background: #1e293b;
-    box-shadow: 0 0 0 2px #1e293b, 0.3em 0.3em 1em rgba(0, 0, 0, 0.4);
-  }
+[data-color-mode="dark"] .legend {
+  box-shadow: 0 0 0 2px var(--surface), 0.3em 0.3em 1em rgba(0, 0, 0, 0.4);
 }
 
 .legend div {
@@ -185,14 +665,18 @@ header {
   white-space: nowrap;
 }
 
+/* ============================================
+   CATEGORY CARDS
+   ============================================ */
+
 .category {
   margin: 0;
   width: 100%;
-  background: white;
+  background: var(--surface);
   border-radius: 1rem;
   overflow: visible;
   box-shadow: var(--shadow-md);
-  border: 1px solid rgba(0, 0, 0, 0.07);
+  border: 1px solid var(--border-color);
 }
 
 @media screen and (min-width: 640px) {
@@ -201,27 +685,20 @@ header {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .category {
-    background: #1e293b;
-    box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    width: 100%; /* Ensure full width */
-  }
-  
-  .category .title {
-    background-color: var(--main-bg-color) !important;
-    border-top-left-radius: 0.74rem;
-    border-top-right-radius: 0.74rem;
-  }
-  
-  .category .item .item-note {
-    color: var(--foreground) !important;
-  }
-  
-  .category .item {
-    border-bottom: 1px solid rgba(100, 116, 139, 0.15)!important;
-  }
+[data-color-mode="dark"] .category {
+  width: 100%;
+}
+
+[data-color-mode="dark"] .category .title {
+  background-color: var(--main-bg-color) !important;
+}
+
+[data-color-mode="dark"] .category .item .item-note {
+  color: var(--foreground) !important;
+}
+
+[data-color-mode="dark"] .category .item {
+  border-bottom: 1px solid rgba(100, 116, 139, 0.15) !important;
 }
 
 .category .title {
@@ -232,8 +709,10 @@ header {
   color: white;
   font-weight: bold;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-  border-top-left-radius: 0.75rem;
-  border-top-right-radius: 0.75rem;
+  /* Match the container's inner radius (1rem outer − 1px border) so the header's
+     corners don't overhang and clip .category's border. */
+  border-top-left-radius: calc(1rem - 1px);
+  border-top-right-radius: calc(1rem - 1px);
 }
 
 /* Prevent gradients from applying to buttons and dropdown items */
@@ -259,6 +738,10 @@ button span,
   content: none;
 }
 
+/* ============================================
+   MENU HEADER
+   ============================================ */
+
 .menu-header {
   color: var(--main-text-color);
   font-size: 1.5rem;
@@ -269,11 +752,9 @@ button span,
   display: inline-block;
 }
 
-@media (prefers-color-scheme: dark) {
-  .menu-header {
-    color: white;
-    border-bottom: 2px solid rgba(158, 198, 204, 0.5);
-  }
+[data-color-mode="dark"] .menu-header {
+  color: white;
+  border-bottom: 2px solid rgba(158, 198, 204, 0.5);
 }
 
 .menu-header h2 {
@@ -285,12 +766,16 @@ button span,
   line-height: 1.2;
 }
 
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
+
 @media only screen and (max-width: 640px) {
   .category {
     flex: 100%;
     margin: 10px 0;
   }
-  
+
   .legend {
     font-size: 12px;
     padding: 8px 5px;
@@ -302,36 +787,36 @@ button span,
     width: 100%;
     box-shadow: none;
   }
-  
+
   .legend div {
     margin: 0 5px;
   }
-  
+
   .title-bar h1 {
     font-size: 1.8rem;
   }
-  
+
   .wrapper {
     margin: 0px;
     margin-top: 5px;
   }
-  
+
   .menu-header {
     font-size: 1.3rem;
   }
-  
+
   .category .item {
     padding: 5px 15px 15px 15px;
   }
-  
+
   .category .item .item-note {
     padding: 0 15px;
   }
-  
+
   .category .item .item-name {
     padding-right: 0;
   }
-  
+
   .category .title {
     font-size: 1.3em;
     padding: 8px 0;
@@ -342,13 +827,13 @@ button span,
 @media only screen and (min-width: 481px) and (max-width: 640px) {
   .category .item .item-note {
     padding: 0;
-    margin-left: 32px; /* Slightly larger margin for medium screens */
+    margin-left: 32px;
   }
-  
+
   .category .item .item-name {
     align-items: flex-start;
   }
-  
+
   .icon-container {
     margin-top: 2px;
   }
@@ -358,27 +843,27 @@ button span,
   .title-bar h1 {
     font-size: 1.6rem;
   }
-  
+
   .legend {
     font-size: 10px;
     padding: 6px 2px;
     justify-content: space-between;
     box-shadow: none;
   }
-  
+
   .category .item {
     padding: 5px 10px 12px 10px;
   }
-  
+
   .category .item .item-note {
     padding: 0;
-    margin-left: 28px; /* Aligns with the text in the item-name after the icon */
+    margin-left: 28px;
   }
-  
+
   .category .item .item-name {
     align-items: flex-start;
   }
-  
+
   .icon-container {
     margin-top: 2px;
   }
@@ -389,14 +874,17 @@ button span,
     white-space: normal;
     max-width: 90%;
   }
-  
+
   /* Improve button layout on small screens */
-  .flex.flex-col.md\\:flex-row {
+  .flex.flex-col.md\:flex-row {
     gap: 10px;
   }
 }
 
-/* Icon containers */
+/* ============================================
+   ICON CONTAINERS
+   ============================================ */
+
 .icon-container {
   display: inline-flex;
   align-items: center;
@@ -430,39 +918,42 @@ button.flex.items-center span {
   padding-top: 15px;
 }
 
-/* Make form elements more mobile-friendly */
+/* ============================================
+   MOBILE FORM ELEMENTS
+   ============================================ */
+
 @media only screen and (max-width: 640px) {
   input[type="text"], textarea {
     font-size: 16px; /* Prevents iOS zoom on focus */
   }
-  
+
   /* Better touch targets for most buttons, but not icon pickers or close buttons */
   button:not(.flex.flex-row.items-center > button):not(.rounded-full):not(.modal-action-button) {
     min-height: 44px;
   }
-  
+
   /* Keep fill mode icon button compact */
   .flex.flex-row.items-center > button {
     min-height: unset;
     height: auto;
   }
-  
+
   /* Improve menu edit controls spacing */
   .flex.items-center.w-full.justify-between {
     flex-wrap: wrap;
   }
-  
+
   /* Adjust spacing for icon pickers in edit mode only */
   .flex.w-full.mb-2:not(.flex-row) {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .flex.w-full.mb-2:not(.flex-row) > button,
   .flex.w-full.mb-2:not(.flex-row) > input {
     width: 100%;
   }
-  
+
   /* Adjust dropdown position */
   .absolute.right-0.z-10 {
     width: 100%;
@@ -471,14 +962,29 @@ button.flex.items-center span {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  /* Improve button layout on small screens */
-  .flex.flex-col.md\\:flex-row {
-    gap: 10px;
+[data-color-mode="dark"] .flex.flex-col.md\:flex-row {
+  gap: 10px;
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   Respect user preference for reduced motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* Dropdown legend animation */
+/* ============================================
+   ANIMATIONS
+   ============================================ */
 
 @keyframes fadeInSlideDown {
   from {
@@ -572,4 +1078,19 @@ button.flex.items-center span {
 
 .close-button-exit {
   animation: fadeOut 0.3s ease-out forwards;
+}
+
+/* ============================================
+   SETTINGS MODAL THEME SUPPORT
+   ============================================ */
+
+/* Settings switch background in dark mode */
+[data-color-mode="dark"] .settings-switch:not([aria-checked="true"]) {
+  background-color: rgb(75 85 99); /* gray-600 */
+}
+
+/* Restore the rounded toggle handle, which the global "button span" reset
+   above (border-radius: 0 !important) would otherwise flatten into a rectangle */
+.settings-switch span {
+  border-radius: 9999px !important;
 }

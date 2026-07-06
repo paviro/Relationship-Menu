@@ -56,3 +56,16 @@ export type MenuData_1_2 = {
   language?: string; // optional in 1.2
   template_uuid?: string | null;
 };
+
+// Accessibility theme preferences
+export type ColorMode = 'system' | 'light' | 'dark';
+export type VisionTheme = 'default' | 'pd' | 'tritan'; // pd = protanopia/deuteranopia
+export type ContrastLevel = 'normal' | 'high';
+
+export type ThemePreferences = {
+  colorMode: ColorMode;
+  vision: VisionTheme;
+  contrast: ContrastLevel;
+  // When false/absent, contrast follows the system prefers-contrast setting.
+  contrastExplicit?: boolean;
+};

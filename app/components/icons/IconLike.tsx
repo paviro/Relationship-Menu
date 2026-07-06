@@ -12,10 +12,10 @@ export default function IconLike({ className = '', ...props }: IconProps) {
       viewBox="0 0 20 20" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
-      className={`text-green-500 ${className}`}
+      className={`text-[color:var(--icon-like)] ${className}`}
       {...props}
     >
-      <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2" fill="#EAFFED" className="dark:fill-green-700 dark:stroke-green-700" />
+      <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2" className="[fill:var(--icon-like-fill)]" />
       <path 
         d="M6 10L9 13L14 7" 
         stroke="currentColor" 

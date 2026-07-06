@@ -12,10 +12,10 @@ export default function IconMust({ className = '', ...props }: IconProps) {
       viewBox="0 0 20 20" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
-      className={`text-blue-500 ${className}`}
+      className={`text-[color:var(--icon-must)] ${className}`}
       {...props}
     >
-      <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2" fill="#DEF0FF" className="dark:fill-blue-700 dark:stroke-blue-700" />
+      <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2" className="[fill:var(--icon-must-fill)]" />
       <path 
         d="M10 5V12M10 15V15.01" 
         stroke="currentColor" 

@@ -26,7 +26,7 @@ export default function Footer() {
   return (
     <footer className="text-center py-6 text-gray-500 dark:text-gray-400">
       <div className="border-t border-gray-300 dark:border-gray-700 w-4/5 mx-auto mt-5 mb-2.5 pt-5">
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-4 justify-center flex-wrap">
           <p><Link href="/support" className="hover:underline">Support</Link></p>
           {!hideSourceOnPaths.some(path => pathname?.startsWith(path)) && (
             <p><Link href="https://github.com/paviro/Relationship-Menu" className="hover:underline">Source Code</Link></p>
@@ -37,4 +37,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-} 
+}
