@@ -7,6 +7,12 @@ interface UseModalA11yOptions {
   onDismiss: () => void;
   /** Element to focus when the modal opens. Defaults to the first focusable element. */
   initialFocusRef?: RefObject<HTMLElement | null>;
+  /**
+   * When false, focus moves to the dialog container itself rather than a control
+   * inside it. Keeps Escape and Tab-trapping working without making any button
+   * appear active on open. The container must have tabIndex={-1}. Defaults to true.
+   */
+  autoFocus?: boolean;
 }
 
 const FOCUSABLE_SELECTOR =
@@ -18,23 +24,26 @@ const FOCUSABLE_SELECTOR =
  * within the dialog. Returns a ref to attach to the modal container (the element
  * whose descendants should be trappable).
  */
-export function useModalA11y({ isOpen, onDismiss, initialFocusRef }: UseModalA11yOptions) {
+export function useModalA11y({ isOpen, onDismiss, initialFocusRef, autoFocus = true }: UseModalA11yOptions) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Initial focus + background scroll lock
   useEffect(() => {
     if (!isOpen) return;
 
-    const focusTarget =
-      initialFocusRef?.current ??
-      containerRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+    // When autoFocus is disabled, focus the container itself so no inner control
+    // looks active on open while Escape/Tab-trapping still work.
+    const focusTarget = autoFocus
+      ? initialFocusRef?.current ??
+        containerRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
+      : containerRef.current;
     focusTarget?.focus();
 
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen, initialFocusRef]);
+  }, [isOpen, initialFocusRef, autoFocus]);
 
   // Escape to dismiss
   useEffect(() => {

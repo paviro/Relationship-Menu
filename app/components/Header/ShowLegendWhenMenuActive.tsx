@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { IconMust, IconLike, IconMaybe, IconPreferNot, IconOffLimit } from "../icons";
@@ -54,19 +54,30 @@ export default function ShowLegendWhenMenuActive({ showAsOverlay = false, onClos
     };
   }, [pathname, nonMenuPaths, menuPaths]);
   
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (onClose) {
       // Set closing state to trigger animations
       setIsClosing(true);
-      
+
       // Wait for animations to complete before actually closing
       setTimeout(() => {
         setIsClosing(false);
         onClose();
       }, 400); // 400ms is enough time for the longest animation to complete
     }
-  };
-  
+  }, [onClose]);
+
+  // Close on Escape when shown as an overlay, mirroring the backdrop-click
+  // dismissal, so the modal experience is consistent with the other dialogs.
+  useEffect(() => {
+    if (!showAsOverlay || !onClose) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAsOverlay, onClose, handleClose]);
+
   // If showAsOverlay is true, we show the legend as an overlay
   // Otherwise, show it inline but only if showLegend is true
   if (!showAsOverlay && !showLegend) return null;

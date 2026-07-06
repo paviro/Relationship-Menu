@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import { IconSliders, IconX } from '../icons';
 import { useTheme } from '../ThemeProvider';
@@ -101,11 +101,10 @@ function RadioOptionGroup<T extends string>({
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { preferences, setPreferences } = useTheme();
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const { containerRef } = useModalA11y({
     isOpen,
     onDismiss: onClose,
-    initialFocusRef: closeButtonRef,
+    autoFocus: false,
   });
 
   // Only reachable client-side (isOpen starts false and flips on user action),
@@ -146,7 +145,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         {/* Modal content */}
         <div
           ref={containerRef}
-          className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 relative z-10"
+          tabIndex={-1}
+          className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 relative z-10 focus:outline-none"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -159,9 +159,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </h2>
             </div>
             <button
-              ref={closeButtonRef}
               onClick={onClose}
-              className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--main-text-color)]"
+              className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-[var(--main-bg-color)]/20 transition-colors ring-2 ring-[var(--main-text-color)] focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--main-text-color)]"
               aria-label="Close settings"
             >
               <IconX className="h-5 w-5" />

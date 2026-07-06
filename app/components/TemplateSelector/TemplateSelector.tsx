@@ -6,7 +6,7 @@ import TemplateSetupForm from './TemplateSetupForm';
 import TemplateItem from './TemplateItem';
 import { CURRENT_SCHEMA_VERSION } from '../../utils/migrations';
 import { v4 as uuidv4 } from 'uuid';
-import { IconWarning } from '../icons';
+import { IconWarning, IconPlus, IconFile, IconX } from '../icons';
 import { saveMenu, updateMenuList } from '../../utils/menuStorage';
 
 function TemplateSelectorContent({
@@ -190,6 +190,17 @@ export default function TemplateSelector({
     }
   }, [isModal]);
 
+  // Close on Escape, mirroring the backdrop-click dismissal, so the modal
+  // experience is consistent with the other dialogs.
+  useEffect(() => {
+    if (!isModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModal, onClose]);
+
   const handleTemplateClick = (template: TemplateItemType) => {
     setSelectedTemplate(template);
   };
@@ -254,30 +265,39 @@ export default function TemplateSelector({
   // Render modal version
   if (isModal) {
     return (
-      <div className="fixed inset-0 z-[1000] overflow-y-auto flex items-center justify-center p-4" style={{ backdropFilter: 'blur(5px)' }}>
-        <div className="absolute inset-0 bg-black/50 -z-10" onClick={onClose}></div>
+      <div className="fixed inset-0 z-[1000] overflow-y-auto flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gray-500/80 dark:bg-gray-900/90 backdrop-blur-sm -z-10" onClick={onClose}></div>
         <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          {onMenuPageWithNoMenu ? (
-            <button 
-              onClick={onClose}
-              className="absolute right-4 top-4 text-[var(--main-text-color)] hover:text-[var(--main-text-color-hover)] z-10 bg-white dark:bg-gray-800 rounded-md px-3 py-1 flex items-center justify-center shadow-md border border-[var(--main-bg-color)] dark:border-gray-700 modal-action-button"
-              aria-label="Open existing menu"
-            >
-              <span className="text-sm font-medium">Open Menu</span>
-            </button>
-          ) : (
-            <button 
-              onClick={onClose}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 z-10 bg-white dark:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center shadow-md border border-gray-200 dark:border-gray-700"
-              aria-label="Close"
-            >
-              <span className="text-xl">&times;</span>
-            </button>
-          )}
-          <div className="p-4">
-            <h2 className="text-xl font-bold text-[var(--main-text-color)] mb-4">Choose a Template</h2>
-            <div className="border-b border-gray-200 dark:border-gray-700 -mx-4 mb-4"></div>
-            
+          <div className="p-4 sm:p-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="flex items-center justify-center h-10 w-10 rounded-full bg-[var(--main-bg-color)]/20 mr-3">
+                  <IconPlus className="h-5 w-5 text-[var(--main-text-color)]" aria-hidden="true" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Choose a Template</h2>
+              </div>
+              {onMenuPageWithNoMenu ? (
+                <button
+                  onClick={onClose}
+                  className="flex-shrink-0 text-[var(--main-text-color)] hover:text-[var(--main-text-color-hover)] hover:bg-[var(--main-bg-color)]/20 transition-colors bg-white dark:bg-gray-800 rounded-md px-4 py-2 flex items-center justify-center shadow-md border border-[var(--main-bg-color)] dark:border-gray-700 modal-action-button"
+                  aria-label="Open existing menu"
+                >
+                  <IconFile className="h-4 w-4 mr-1.5" />
+                  <span className="text-sm font-medium">Open Menu</span>
+                </button>
+              ) : (
+                <button
+                  onClick={onClose}
+                  className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-[var(--main-bg-color)]/20 transition-colors ring-2 ring-[var(--main-text-color)] focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--main-text-color)]"
+                  aria-label="Close"
+                >
+                  <IconX className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+            <div className="border-b border-gray-200 dark:border-gray-700 -mx-4 sm:-mx-6 mb-6"></div>
+
             {/* Component content */}
             <TemplateSelectorContent
               isLoading={isLoading}

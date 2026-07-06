@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { IconShare, IconChevron, IconFile, IconDownload } from '../../icons';
 import { ConfirmModal } from '../../ui/ConfirmModal';
+import { ShareLinkModal } from '../../ui/ShareLinkModal';
 import { MenuData } from '../../../types';
 import { ToastType } from '../../../components/ui/Toast/ToastContext';
 import { encryptMenu } from '../../../utils/crypto';
@@ -37,7 +38,6 @@ export function ExportButton({
   const [pendingShareAsLink, setPendingShareAsLink] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const toggleDropdown = () => {
     if (!isDropdownOpen) {
@@ -169,14 +169,6 @@ export function ExportButton({
     }
   };
 
-  const handleCopy = () => {
-    if (shareLink) {
-      navigator.clipboard.writeText(shareLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1000);
-    }
-  };
-
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <button
@@ -273,43 +265,11 @@ export function ExportButton({
         initialFocus="cancel"
       />
       {/* Share Link Modal */}
-      {shareLink && (
-        <div className="fixed inset-0 z-[2000] overflow-y-auto flex items-center justify-center p-4" style={{ backdropFilter: 'blur(5px)' }}>
-          <div className="absolute inset-0 bg-black/50 -z-10" onClick={() => setShareLink(null)}></div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-lg w-full relative z-10">
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              onClick={() => setShareLink(null)}
-              aria-label="Close"
-            >
-              <span className="text-2xl">&times;</span>
-            </button>
-            <h2 className="text-lg font-bold mb-2 text-[var(--main-text-color)]">Shareable Link</h2>
-            <p className="mb-4 text-gray-700 dark:text-gray-300">Copy and share this link. Anyone with the link can access your menu. The link will expire after use or after 5 days.</p>
-            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded px-3 py-2 mb-4">
-              <input
-                type="text"
-                value={shareLink}
-                readOnly
-                className="flex-1 bg-transparent text-xs text-gray-800 dark:text-gray-100 outline-none select-all"
-                onFocus={e => e.target.select()}
-              />
-              <button
-                className="ml-2 px-3 py-1 bg-[var(--main-text-color)] text-white rounded text-xs font-medium hover:bg-[var(--main-text-color-hover)] flex items-center justify-center min-w-[48px]"
-                onClick={handleCopy}
-                disabled={copied}
-              >
-                {copied ? (
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                ) : (
-                  'Copy'
-                )}
-              </button>
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Keep this link private. Anyone with the link can access your menu.</div>
-          </div>
-        </div>
-      )}
+      <ShareLinkModal
+        isOpen={shareLink !== null}
+        onClose={() => setShareLink(null)}
+        shareLink={shareLink ?? ''}
+      />
     </div>
   );
 } 
