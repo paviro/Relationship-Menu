@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, createContext, useContext, useState, ReactNode } from 'react';
+import { useEffect, useCallback, createContext, useContext, useMemo, useSyncExternalStore, ReactNode } from 'react';
 import { ThemePreferences } from '../types';
 import {
   getThemePreferences,
@@ -8,7 +8,6 @@ import {
   resolveColorMode,
   applySystemContrast,
   DEFAULT_THEME,
-  THEME_STORAGE_KEY,
 } from '../utils/themeStorage';
 
 type ThemeContextValue = {
@@ -17,7 +16,16 @@ type ThemeContextValue = {
   resolvedColorMode: 'light' | 'dark';
 };
 
+type ResolvedTheme = {
+  preferences: ThemePreferences;
+  resolvedColorMode: 'light' | 'dark';
+};
+
 const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+// Same-tab notification: setPreferences() writes storage, then dispatches this so
+// the external store re-reads (the native `storage` event only fires cross-tab).
+const THEME_CHANGE_EVENT = 'themePreferencesChanged';
 
 export function useTheme() {
   const context = useContext(ThemeContext);
@@ -42,100 +50,67 @@ function applyThemeToDocument(preferences: ThemePreferences) {
   root.setAttribute('data-contrast', preferences.contrast);
 }
 
+// External store for the fully-resolved theme. The snapshot is a JSON string so
+// useSyncExternalStore can compare it by value (Object.is), avoiding the infinite
+// loop a fresh object snapshot would cause. Re-reads on storage changes, same-tab
+// updates, and system color-scheme / contrast media changes.
+function subscribeTheme(callback: () => void) {
+  const mediaQueries = [
+    window.matchMedia('(prefers-color-scheme: dark)'),
+    window.matchMedia('(prefers-contrast: more)'),
+    window.matchMedia('(prefers-contrast: high)'),
+  ];
+  window.addEventListener('storage', callback);
+  window.addEventListener(THEME_CHANGE_EVENT, callback);
+  mediaQueries.forEach((mq) => mq.addEventListener('change', callback));
+  return () => {
+    window.removeEventListener('storage', callback);
+    window.removeEventListener(THEME_CHANGE_EVENT, callback);
+    mediaQueries.forEach((mq) => mq.removeEventListener('change', callback));
+  };
+}
+
+function getThemeSnapshot(): string {
+  const preferences = applySystemContrast(getThemePreferences());
+  const resolved: ResolvedTheme = {
+    preferences,
+    resolvedColorMode: resolveColorMode(preferences),
+  };
+  return JSON.stringify(resolved);
+}
+
+function getThemeServerSnapshot(): string {
+  return JSON.stringify({ preferences: DEFAULT_THEME, resolvedColorMode: 'light' } satisfies ResolvedTheme);
+}
+
 interface ThemeProviderProps {
   children: ReactNode;
 }
 
 export default function ThemeProvider({ children }: ThemeProviderProps) {
-  const [preferences, setPreferencesState] = useState<ThemePreferences>(DEFAULT_THEME);
-  const [resolvedColorMode, setResolvedColorMode] = useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = useState(false);
+  const themeSnapshot = useSyncExternalStore(subscribeTheme, getThemeSnapshot, getThemeServerSnapshot);
+  const { preferences, resolvedColorMode } = useMemo(
+    () => JSON.parse(themeSnapshot) as ResolvedTheme,
+    [themeSnapshot]
+  );
 
-  // Updates preferences and persists to storage.
-  // Contrast is only persisted when the user set it explicitly; otherwise it
-  // follows the system prefers-contrast setting and must not be baked into
-  // storage (which would strand the user in high contrast after the OS setting
-  // is removed).
+  // Persist the change; contrast is only stored when set explicitly, otherwise it
+  // follows the system prefers-contrast setting and must not be baked into storage
+  // (which would strand the user in high contrast after the OS setting is removed).
+  // The external store re-derives and re-renders in response to the dispatched event.
   const setPreferences = useCallback((newPrefs: ThemePreferences) => {
-    setPreferencesState(newPrefs);
     const toPersist: ThemePreferences = newPrefs.contrastExplicit
       ? newPrefs
       : { ...newPrefs, contrast: 'normal' };
     saveThemePreferences(toPersist);
-    applyThemeToDocument(newPrefs);
-    setResolvedColorMode(resolveColorMode(newPrefs));
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }, []);
 
-  // Read stored preferences, derive system contrast, and apply to state + DOM.
-  // Shared by the mount effect and the cross-tab storage listener so both paths
-  // resolve preferences identically.
-  const hydrateFromStorage = useCallback(() => {
-    const finalPrefs = applySystemContrast(getThemePreferences());
-    setPreferencesState(finalPrefs);
-    applyThemeToDocument(finalPrefs);
-    setResolvedColorMode(resolveColorMode(finalPrefs));
-  }, []);
-
-  // Initialize on mount
+  // Apply the resolved theme to the <html> element whenever it changes (mount and
+  // every subsequent update). Applies side effects only — no state updates here.
   useEffect(() => {
-    hydrateFromStorage();
-    setMounted(true);
-  }, [hydrateFromStorage]);
-
-  // Listen for system color scheme changes
-  useEffect(() => {
-    if (!mounted) return;
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const handleChange = () => {
-      // Only react when in "system" mode
-      if (preferences.colorMode === 'system') {
-        applyThemeToDocument(preferences);
-        setResolvedColorMode(resolveColorMode(preferences));
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [mounted, preferences]);
-
-  // Listen for system prefers-contrast changes
-  // Check both 'more' (CSS Level 5) and 'high' (earlier drafts) for browser compatibility
-  useEffect(() => {
-    if (!mounted) return;
-
-    const contrastQueryMore = window.matchMedia('(prefers-contrast: more)');
-    const contrastQueryHigh = window.matchMedia('(prefers-contrast: high)');
-
-    const handleContrastChange = () => {
-      if (!preferences.contrastExplicit) {
-        // Re-derive from the system in both directions (normal base → high if preferred).
-        const newPrefs = applySystemContrast({ ...preferences, contrast: 'normal' });
-        setPreferencesState(newPrefs);
-        applyThemeToDocument(newPrefs);
-      }
-    };
-
-    contrastQueryMore.addEventListener('change', handleContrastChange);
-    contrastQueryHigh.addEventListener('change', handleContrastChange);
-    return () => {
-      contrastQueryMore.removeEventListener('change', handleContrastChange);
-      contrastQueryHigh.removeEventListener('change', handleContrastChange);
-    };
-  }, [mounted, preferences]);
-
-  // Sync across tabs: a change written to localStorage in another tab fires a
-  // `storage` event here. Re-read, re-derive system contrast, and apply.
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== THEME_STORAGE_KEY) return;
-      hydrateFromStorage();
-    };
-
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, [hydrateFromStorage]);
+    applyThemeToDocument(preferences);
+  }, [preferences]);
 
   const contextValue: ThemeContextValue = {
     preferences,

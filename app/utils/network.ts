@@ -70,7 +70,7 @@ export async function uploadEncryptedMenu(encryptedData: Uint8Array): Promise<st
 }
 
 // Fetch encrypted menu data by token (triggers auto-deletion timer)
-export async function fetchEncryptedMenu(token: string): Promise<Uint8Array> {
+export async function fetchEncryptedMenu(token: string): Promise<Uint8Array<ArrayBuffer>> {
   try {
     const baseUrl = getApiBaseUrl();
     const res = await fetch(`${baseUrl}/menus/${token}`);

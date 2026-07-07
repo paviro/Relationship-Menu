@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { NUNITO_FONTS_COMPRESSED } from '../../../node_modules/.fonts';
+import { NUNITO_FONTS_COMPRESSED } from '../../../generated/fonts';
 import { ungzip } from 'pako';
 
 // Efficiently convert a Uint8Array to base64 without exceeding the call stack

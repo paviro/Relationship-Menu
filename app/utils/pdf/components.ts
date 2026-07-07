@@ -156,7 +156,7 @@ export function addLegend(pdf: jsPDF, yPos: number, isCompact: boolean = false, 
  * Adds the footer to the PDF
  */
 export function addFooter(pdf: jsPDF, menuData: MenuData): void {
-  const pageCount = pdf.internal.getNumberOfPages();
+  const pageCount = pdf.getNumberOfPages();
   
   // Format the date with month name
   const date = new Date(menuData.last_update);

@@ -48,7 +48,7 @@ async function extractTtfUrl(cssUrl) {
   }
 }
 
-const FONTS_DIR = path.join(__dirname, '..', 'node_modules', '.fonts');
+const FONTS_DIR = path.join(__dirname, '..', 'generated', 'fonts');
 
 async function downloadFont(fontName, ital, weight) {
   console.log(`Downloading ${fontName} (weight ${weight})...`);

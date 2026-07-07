@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 import { Step, TransitionPhase } from './types';
 import { getSpotlightRect } from './utils';
+
+const noopSubscribe = () => () => {};
 
 export function useOnboardingState(
   steps: Step[],
@@ -9,20 +11,25 @@ export function useOnboardingState(
 ) {
   const [currentStep, setCurrentStep] = useState(-1);
   const [currentSubStep, setCurrentSubStep] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
+  const [closed, setClosed] = useState(false);
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
   const [transitionPhase, setTransitionPhase] = useState<TransitionPhase>('none');
-  
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !localStorage.getItem(storageKey)) {
-      setIsOpen(true);
-    }
-  }, [storageKey]);
+
+  // Auto-open on first visit (when the storage key is absent). Read as an
+  // external store so the server render (always "seen") stays hydration-safe.
+  const seenOnboarding = useSyncExternalStore(
+    noopSubscribe,
+    () => localStorage.getItem(storageKey) !== null,
+    () => true
+  );
+  const isOpen = !seenOnboarding && !closed;
 
   // Reset sub-step counter when moving to a new step
-  useEffect(() => {
+  const [prevStep, setPrevStep] = useState(currentStep);
+  if (prevStep !== currentStep) {
+    setPrevStep(currentStep);
     setCurrentSubStep(0);
-  }, [currentStep]);
+  }
 
   const step = currentStep >= 0 ? steps[currentStep] : null;
   const isWelcomeScreen = currentStep === -1;
@@ -45,7 +52,7 @@ export function useOnboardingState(
   }, [isOpen, step]);
 
   const handleClose = useCallback(() => {
-    setIsOpen(false);
+    setClosed(true);
     localStorage.setItem(storageKey, 'true');
     if (onFinish) onFinish();
   }, [onFinish, storageKey]);

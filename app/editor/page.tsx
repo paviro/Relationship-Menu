@@ -78,16 +78,6 @@ function EditorContent() {
     description: 'Create a personalized relationship agreement that reflects your unique relationship. This brief tour will help you navigate the editor and its features.'
   };
 
-  // Effect to handle initial URL parameters on mount
-  useEffect(() => {
-    // Only run once on component mount
-    const modeParam = searchParams.get('mode') as MenuMode | null;
-    
-    if (modeParam && ['view', 'fill', 'edit'].includes(modeParam)) {
-      setInitialMode(modeParam);
-    }
-  }, [searchParams]);
-
   // Update document title when menu data changes
   useEffect(() => {
     // Only run in browser environment

@@ -241,7 +241,7 @@ export async function generateMenuPDF(menuData: MenuData): Promise<Blob> {
     const modifiedPdfBytes = await pdfDoc.save();
     
     // Return as Blob
-    return new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+    return new Blob([new Uint8Array(modifiedPdfBytes)], { type: 'application/pdf' });
   } catch (error) {
     console.error("Failed to attach menu data to PDF:", error);
     // Fall back to returning the original PDF if attachment fails

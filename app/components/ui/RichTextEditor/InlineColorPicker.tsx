@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { HexColorPicker } from 'react-colorful';
 import type { Node as PMNode } from '@tiptap/pm/model';
@@ -42,13 +42,16 @@ export function InlineColorPicker({ editor }: { editor: Editor }) {
     };
   }, [editor, themeDefaultColor]);
 
-  useEffect(() => {
-    if (isOpenRef.current) return;
-    const color = getCurrentColor(editor);
-    if (!color) {
+  // When the theme default color changes (light/dark switch) and the selection has
+  // no explicit color, follow the new default. Adjusted during render rather than in
+  // an effect to avoid a cascading re-render.
+  const [prevThemeDefault, setPrevThemeDefault] = useState(themeDefaultColor);
+  if (prevThemeDefault !== themeDefaultColor) {
+    setPrevThemeDefault(themeDefaultColor);
+    if (!isOpen && !getCurrentColor(editor)) {
       setCurrentColor(themeDefaultColor);
     }
-  }, [themeDefaultColor, editor]);
+  }
 
   useEffect(() => {
     return () => {

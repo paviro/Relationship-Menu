@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useLayoutEffect, useState } from 'react';
 import { 
   IconMust, 
   IconLike, 
@@ -61,11 +61,12 @@ export function IconPicker({ selectedIcon, onSelectIcon, isOpen, onClose, mode =
   const pickerRef = useRef<HTMLDivElement>(null);
   const firstOptionRef = useRef<HTMLButtonElement>(null);
   const [openDirection, setOpenDirection] = useState<'up' | 'down'>('down');
-  const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
+  // Measure available space and decide open direction before paint, so the picker
+  // never appears in the wrong position. useLayoutEffect corrects the direction
+  // before the browser paints (unlike useEffect, which would flicker).
+  useLayoutEffect(() => {
     if (isOpen && parentRef.current && pickerRef.current) {
-      setIsReady(false);
       const parentRect = parentRef.current.getBoundingClientRect();
       const pickerHeight = pickerRef.current.offsetHeight || 260; // fallback height
       const spaceBelow = window.innerHeight - parentRect.bottom;
@@ -75,10 +76,6 @@ export function IconPicker({ selectedIcon, onSelectIcon, isOpen, onClose, mode =
       } else {
         setOpenDirection('down');
       }
-      // Wait for next tick to show picker in correct position
-      setTimeout(() => setIsReady(true), 0);
-    } else if (!isOpen) {
-      setIsReady(false);
     }
   }, [isOpen, parentRef]);
 
@@ -126,7 +123,6 @@ export function IconPicker({ selectedIcon, onSelectIcon, isOpen, onClose, mode =
       className={`absolute z-10 left-0 sm:left-0 sm:right-auto right-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-3 border border-gray-100 dark:border-gray-700 w-full max-w-xs sm:w-[360px] sm:max-w-none ${positionClass}`}
       role="dialog"
       aria-label="Select icon"
-      style={!isReady ? { visibility: 'hidden', pointerEvents: 'none' } : {}}
     >
       <div 
         className="grid grid-cols-2 gap-3"

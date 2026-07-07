@@ -155,7 +155,7 @@ export function drawTextWithEmojis(
   tokens.forEach(t => {
     if (t.type === 'text') {
       if (t.value) {
-        const options = baseline === 'middle' ? { baseline: 'middle' } : undefined;
+        const options = baseline === 'middle' ? { baseline: 'middle' as const } : undefined;
         pdf.text(t.value, cursorX, y, options);
         cursorX += pdf.getTextWidth(t.value);
       }
@@ -166,7 +166,7 @@ export function drawTextWithEmojis(
         pdf.addImage(dataUrl, 'PNG', cursorX, imgY, emojiBox, emojiBox);
       } catch {
         // Fallback: draw as plain text if image add fails
-        const options = baseline === 'middle' ? { baseline: 'middle' } : undefined;
+        const options = baseline === 'middle' ? { baseline: 'middle' as const } : undefined;
         pdf.text(t.value, cursorX, y, options);
       }
       cursorX += emojiBox + 0.4;

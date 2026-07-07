@@ -6,7 +6,8 @@ import { MenuData } from '../../types';
 import { IconFile, IconPlus, IconX } from '../icons';
 import { migrateMenuData } from '../../utils/migrations';
 import { extractMenuDataFromPDF } from '../../utils/pdf/extract';
-import { MenuInfo, getAllMenus, deleteMenu } from '../../utils/menuStorage';
+import { deleteMenu } from '../../utils/menuStorage';
+import { useSavedMenus } from '../../hooks/useStoredMenu';
 import { DeleteMenuModal } from './DeleteMenuModal';
 import { MenuList } from './MenuList';
 import { FileUploader } from './FileUploader';
@@ -36,7 +37,7 @@ export function FileSelector({ isModal = false, onClose, onMenuPageWithNoMenu = 
   const searchParams = useSearchParams();
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [savedMenus, setSavedMenus] = useState<MenuInfo[]>([]);
+  const savedMenus = useSavedMenus();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [menuToDelete, setMenuToDelete] = useState<string | null>(null);
 
@@ -51,11 +52,6 @@ export function FileSelector({ isModal = false, onClose, onMenuPageWithNoMenu = 
     isModal,
     onClose,
   });
-
-  // Load saved menus on component mount
-  useEffect(() => {
-    loadSavedMenus();
-  }, []);
 
   // Get the current menu ID from URL search params
   const getCurrentMenuId = (): string => {
@@ -85,15 +81,6 @@ export function FileSelector({ isModal = false, onClose, onMenuPageWithNoMenu = 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isModal, onMenuPageWithNoMenu, showDeleteModal, ImportConflictModal, onClose]);
-
-  const loadSavedMenus = () => {
-    try {
-      const menus = getAllMenus();
-      setSavedMenus(menus);
-    } catch (error) {
-      console.error('Error loading saved menus:', error);
-    }
-  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -209,8 +196,8 @@ export function FileSelector({ isModal = false, onClose, onMenuPageWithNoMenu = 
           router.push('/editor/');
         }
         
-        // Refresh the menu list
-        loadSavedMenus();
+        // Refresh the menu list (deleteMenu doesn't emit this itself)
+        window.dispatchEvent(new Event('menuDataChanged'));
       } catch (error) {
         console.error('Error deleting menu:', error);
         // Optionally: setError('Failed to delete menu');

@@ -3,7 +3,7 @@
 
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useSyncExternalStore, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { LoadingIndicator } from "../components/ui/LoadingIndicator";
 import { fetchEncryptedMenu, deleteSharedMenu } from '../utils/network';
@@ -14,6 +14,23 @@ import { checkMenuExists, MenuRateLimitError } from '../utils/network';
 import IconFile from '../components/icons/IconFile';
 import IconTrash from '../components/icons/IconTrash';
 import { APP_CONFIG } from '../config';
+
+// The decryption key lives in the URL fragment (#key=...), which isn't part of
+// searchParams. Read it as an external store so SSR yields null and the client
+// picks it up post-hydration without a state-setting effect.
+function subscribeHash(callback: () => void) {
+  window.addEventListener('hashchange', callback);
+  return () => window.removeEventListener('hashchange', callback);
+}
+
+function getKeySnapshot(): string | null {
+  const match = window.location.hash.match(/key=([^&]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function getKeyServerSnapshot(): string | null {
+  return null;
+}
 
 function getAppUrl(id: string | null, key: string | null) {
   if (!id) return null;
@@ -38,15 +55,7 @@ function OpenMenuContent() {
   const [deleting, setDeleting] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const id = searchParams.get("id");
-  const [key, setKey] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash;
-      const match = hash.match(/key=([^&]+)/);
-      setKey(match ? decodeURIComponent(match[1]) : null);
-    }
-  }, []);
+  const key = useSyncExternalStore(subscribeHash, getKeySnapshot, getKeyServerSnapshot);
 
   useEffect(() => {
     async function check() {

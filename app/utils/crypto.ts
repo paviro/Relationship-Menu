@@ -16,7 +16,7 @@ export function urlSafeBase64Encode(data: Uint8Array): string {
     .replace(/=+$/, '');
 }
 
-export function urlSafeBase64Decode(str: string): Uint8Array {
+export function urlSafeBase64Decode(str: string): Uint8Array<ArrayBuffer> {
   // Add padding
   const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
   const b64 = str.replace(/-/g, '+').replace(/_/g, '/') + pad;
@@ -49,7 +49,7 @@ export async function encryptMenu(menu: MenuData): Promise<{ encryptedData: Uint
 }
 
 // AES-GCM decryption
-export async function decryptMenu(encryptedData: Uint8Array, key: Uint8Array): Promise<MenuData> {
+export async function decryptMenu(encryptedData: Uint8Array<ArrayBuffer>, key: Uint8Array<ArrayBuffer>): Promise<MenuData> {
   try {
     const iv = encryptedData.slice(0, 12);
     const data = encryptedData.slice(12);
@@ -64,7 +64,7 @@ export async function decryptMenu(encryptedData: Uint8Array, key: Uint8Array): P
 }
 
 // Decrypt using url-safe base64 key
-export async function decryptMenuWithUrlSafeKey(encryptedData: Uint8Array, urlSafeKey: string): Promise<MenuData> {
+export async function decryptMenuWithUrlSafeKey(encryptedData: Uint8Array<ArrayBuffer>, urlSafeKey: string): Promise<MenuData> {
   const key = urlSafeBase64Decode(urlSafeKey);
   return decryptMenu(encryptedData, key);
 }

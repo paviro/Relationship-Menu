@@ -1,26 +1,19 @@
 'use client';
 
 import Link from "next/link";
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 
 export default function Footer() {
-  const [showFooter, setShowFooter] = useState(true);
   const pathname = usePathname();
-  
+
   // Define paths where we should hide the footer
   const menuPaths = useMemo(() => ['/editor/'], []);
   const hideSourceOnPaths = useMemo(() => ['/app'], []);
-  
-  useEffect(() => {
-    // Don't show footer on specific menu paths
-    if (menuPaths.some(path => pathname?.startsWith(path))) {
-      setShowFooter(false);
-    } else {
-      setShowFooter(true);
-    }
-  }, [pathname, menuPaths]);
-  
+
+  // Don't show footer on specific menu paths
+  const showFooter = !menuPaths.some(path => pathname?.startsWith(path));
+
   if (!showFooter) return null;
 
   return (
