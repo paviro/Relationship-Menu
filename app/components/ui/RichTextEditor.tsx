@@ -5,7 +5,6 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
 import type { JSONContent } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import type { Node as PMNode } from '@tiptap/pm/model';
@@ -40,7 +39,6 @@ export function RichTextEditor({
         codeBlock: false,
         horizontalRule: false,
       }),
-      Underline,
       TextStyle,
       Color.configure({ types: ['textStyle'] }),
     ],
