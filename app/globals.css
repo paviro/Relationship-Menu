@@ -482,6 +482,12 @@
 [data-color-mode="dark"][data-contrast="high"] .dark\:hover\:bg-gray-700:hover,
 [data-color-mode="dark"][data-contrast="high"] .dark\:hover\:bg-gray-500:hover { background-color: var(--hc-hover-bg); }
 
+/* Roving-tabindex fill-mode item rows (keyboard nav): visible ring on keyboard focus. */
+.fill-row-focusable:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
 /* High contrast focus rings - more visible for users with low vision */
 [data-contrast="high"] *:focus-visible {
   outline: 3px solid var(--border-focus) !important;

@@ -19,6 +19,11 @@ interface MenuItemProps {
   onMoveItemDown?: (catIndex: number, itemIndex: number) => void;
   autoResizeTextarea: (element: HTMLTextAreaElement) => void;
   itemCount?: number;
+  isActiveRow?: boolean;
+  rowRef?: (el: HTMLDivElement | null) => void;
+  onRowFocus?: () => void;
+  onRowMouseEnter?: () => void;
+  onRowMouseLeave?: () => void;
 }
 
 export function MenuItem({
@@ -33,7 +38,12 @@ export function MenuItem({
   onMoveItemUp,
   onMoveItemDown,
   autoResizeTextarea,
-  itemCount
+  itemCount,
+  isActiveRow,
+  rowRef,
+  onRowFocus,
+  onRowMouseEnter,
+  onRowMouseLeave
 }: MenuItemProps) {
   // Common styling classes for all menu item types
   const commonClasses = `py-3 px-[25px] sm:py-3 sm:px-[25px] md:py-4 md:px-[30px] max-sm:py-[15px] max-sm:px-[15px] border-b border-gray-200/60 dark:border-gray-700/40 last:border-0 ${getItemClassName(item.icon)}`;
@@ -47,7 +57,7 @@ export function MenuItem({
     );
   } else if (mode === 'edit') {
     return (
-      <div className={commonClasses}>
+      <div className={commonClasses} role="listitem">
         <EditMenuItem
           catIndex={catIndex}
           itemIndex={itemIndex}
@@ -66,7 +76,17 @@ export function MenuItem({
   } else {
     // Fill mode
     return (
-      <div className={commonClasses}>
+      <div
+        className={`${commonClasses} fill-row-focusable`}
+        role="listitem"
+        id={`item-row-${catIndex}-${itemIndex}`}
+        data-item-row="true"
+        tabIndex={isActiveRow ? 0 : -1}
+        ref={rowRef}
+        onFocus={onRowFocus}
+        onMouseEnter={onRowMouseEnter}
+        onMouseLeave={onRowMouseLeave}
+      >
         <FillMenuItem
           catIndex={catIndex}
           itemIndex={itemIndex}
