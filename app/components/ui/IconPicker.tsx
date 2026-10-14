@@ -95,6 +95,9 @@ export function IconPicker({ selectedIcon, onSelectIcon, isOpen, onClose, mode =
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
       if (e.key === 'Escape') {
+        // Row navigation must not also handle this Escape after focus returns
+        // to the trigger. A second Escape can leave the row itself.
+        e.preventDefault();
         onClose();
       }
     };
@@ -182,4 +185,4 @@ export function IconButton({ selectedIcon, onClick }: IconButtonProps) {
       <IconChevron direction="down" className="h-4 w-4 ml-1.5" aria-hidden="true" />
     </button>
   );
-} 
+}

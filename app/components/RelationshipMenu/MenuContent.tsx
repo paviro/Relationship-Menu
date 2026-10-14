@@ -4,6 +4,7 @@ import { MenuItem } from './MenuItem';
 import { CategoryHeader } from './CategoryHeader';
 import { IconPlus, IconPlusCircle } from '../icons';
 import { useFillModeKeyboardNav } from './hooks/useFillModeKeyboardNav';
+import { useTheme } from '../ThemeProvider';
 
 interface MenuContentProps {
   menu: MenuCategory[];
@@ -41,7 +42,8 @@ export function MenuContent({
   autoResizeTextarea
 }: MenuContentProps) {
   const isEditing = mode === 'edit';
-  const nav = useFillModeKeyboardNav({ menu, mode, onIconChange });
+  const { preferences } = useTheme();
+  const nav = useFillModeKeyboardNav({ menu, mode, onIconChange, enabled: preferences.keyboardFillEnabled !== false });
 
   return (
     <>
@@ -54,6 +56,7 @@ export function MenuContent({
         {menu.map((category, catIndex) => (
           <div 
             key={catIndex} 
+            data-menu-category={catIndex}
             className="category bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-visible border border-gray-200 dark:border-gray-700"
             role="region"
             aria-labelledby={`category-header-${catIndex}`}
@@ -130,4 +133,4 @@ export function MenuContent({
       )}
     </>
   );
-} 
+}

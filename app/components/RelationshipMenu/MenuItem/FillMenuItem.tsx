@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { MenuItem, RichTextJSONPart } from "../../../types";
 import { IconPicker, renderIcon, ICON_OPTIONS } from "../../ui/IconPicker";
 import { IconChevron } from "../../icons";
 import { getItemSpanClasses } from "./utils";
 import { renderRichText, isRichTextEmpty } from "../../../utils/richTextUtils";
 import { RichTextEditor } from "../../ui/RichTextEditor";
+import { useTheme } from "../../ThemeProvider";
 
 interface FillMenuItemProps {
   catIndex: number;
@@ -30,51 +31,74 @@ export function FillMenuItem({
   onIconChange,
   onNoteChange,
 }: FillMenuItemProps) {
+  const { preferences } = useTheme();
+  const hoverToOpenPicker = preferences.hoverToOpenPicker === true;
   const [isNoteExpanded, setIsNoteExpanded] = useState(false);
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
-  // Whether the picker should steal focus into its first option on open.
-  // True for click/keyboard activation; false when opened by a passing hover,
-  // so mousing over rows can't hijack keyboard focus from elsewhere.
-  const [pickerAutoFocus, setPickerAutoFocus] = useState(false);
+  const [pickerOpenMode, setPickerOpenMode] = useState<"hover" | "explicit" | null>(null);
+  if (!hoverToOpenPicker && pickerOpenMode === "hover") {
+    setPickerOpenMode(null);
+  }
+  const isPickerOpen = pickerOpenMode !== null;
+  const pickerTriggerRef = useRef<HTMLButtonElement>(null);
+  const pickerOptionsRef = useRef<HTMLDivElement>(null);
   const pickerWrapperRef = useRef<HTMLDivElement>(null);
   const noteEditorRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isPointerOverPicker = useRef(false);
+
+  const cancelPickerClose = useCallback(() => {
+    if (closeTimer.current !== null) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  }, []);
+
+  const closePicker = useCallback((restoreFocus = false) => {
+    cancelPickerClose();
+    setPickerOpenMode(null);
+    if (restoreFocus) pickerTriggerRef.current?.focus();
+  }, [cancelPickerClose]);
 
   // Hover-only open. Small close delay so moving the pointer from the icon
   // into the picker doesn't flicker it shut.
-  const openPickerOnHover = () => {
-    if (iconType === "talk") return;
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setPickerAutoFocus(false);
-    setIsPickerOpen(true);
+  const openPickerOnHover = (event: React.PointerEvent) => {
+    if (!hoverToOpenPicker || event.pointerType === "touch" || iconType === "talk") return;
+    isPointerOverPicker.current = true;
+    cancelPickerClose();
+    setPickerOpenMode((current) => current ?? "hover");
   };
-  const closePickerOnHoverEnd = () => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setIsPickerOpen(false), 120);
+  const schedulePickerClose = () => {
+    cancelPickerClose();
+    closeTimer.current = setTimeout(() => {
+      closeTimer.current = null;
+      // Check focus when the timer fires as well as cancelling on focus entry.
+      if (pickerOptionsRef.current?.contains(document.activeElement)) return;
+      setPickerOpenMode((current) => current === "hover" ? null : current);
+    }, 120);
   };
-  useEffect(
-    () => () => {
-      if (closeTimer.current) clearTimeout(closeTimer.current);
-    },
-    [],
-  );
+  const closePickerOnHoverEnd = (event: React.PointerEvent) => {
+    if (event.pointerType === "touch") return;
+    isPointerOverPicker.current = false;
+    schedulePickerClose();
+  };
+  useEffect(() => cancelPickerClose, [cancelPickerClose]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: PointerEvent) => {
       if (
         pickerWrapperRef.current &&
         !pickerWrapperRef.current.contains(event.target as Node)
       ) {
-        setIsPickerOpen(false);
+        closePicker();
       }
     };
     if (isPickerOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("pointerdown", handleClickOutside);
     }
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("pointerdown", handleClickOutside);
     };
-  }, [isPickerOpen]);
+  }, [isPickerOpen, closePicker]);
 
   // Close expanded note editor when clicking outside
   useEffect(() => {
@@ -125,21 +149,21 @@ export function FillMenuItem({
     return (
       <button
         type="button"
+        ref={pickerTriggerRef}
         onClick={() => {
-          // Always opens (never toggles closed): a mouse click can land while
-          // hover has already opened the picker, and closing it out from under
-          // the pointer would be a jarring extra step. Explicit close paths are
-          // hover-out, Escape, choosing an option, or clicking outside.
-          if (closeTimer.current) clearTimeout(closeTimer.current);
-          setPickerAutoFocus(true);
-          setIsPickerOpen(true);
+          // A click upgrades a hover preview to an explicitly opened picker.
+          // Subsequent clicks toggle it closed, as they do when hover is off.
+          cancelPickerClose();
+          setPickerOpenMode((current) => current === "explicit" ? null : "explicit");
         }}
-        onMouseEnter={openPickerOnHover}
-        onMouseLeave={closePickerOnHoverEnd}
+        onPointerEnter={openPickerOnHover}
+        onPointerLeave={closePickerOnHoverEnd}
         className={`hc-field inline-flex items-center px-1.5 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 ${
           iconType ? selectedOption.bgColor : "bg-white dark:bg-gray-800"
         }`}
         aria-label="Select icon"
+        aria-haspopup="dialog"
+        aria-expanded={isPickerOpen}
       >
         {renderIcon(iconType)}
         <IconChevron direction="down" className="h-3.5 w-3.5 ml-0.5" />
@@ -149,6 +173,7 @@ export function FillMenuItem({
 
   // Handle expanding the note editor
   const handleExpandNote = () => {
+    closePicker();
     setIsNoteExpanded(true);
   };
 
@@ -160,6 +185,13 @@ export function FillMenuItem({
         <div
           ref={noteEditorRef}
           className="border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700"
+          onKeyDownCapture={(event) => {
+            if (event.key !== "Escape" || event.defaultPrevented || event.nativeEvent.isComposing) return;
+            event.preventDefault();
+            event.stopPropagation();
+            noteEditorRef.current?.closest<HTMLElement>('[data-item-row]')?.focus();
+            setIsNoteExpanded(false);
+          }}
         >
           <RichTextEditor
             value={item.note || null}
@@ -179,6 +211,7 @@ export function FillMenuItem({
       return (
         <div
           onClick={handleExpandNote}
+          data-note-trigger="true"
           className={`text-gray-800 dark:text-gray-50 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 cursor-text text-sm whitespace-pre-line transition-colors duration-200 rounded py-0.5 -my-0.5 ${isRichTextEmpty(item.note) ? "text-gray-500 dark:text-gray-400" : ""}`}
           style={{
             transform: hasIcon ? "translateY(-0.3rem)" : "translateY(-0.7rem)",
@@ -217,18 +250,26 @@ export function FillMenuItem({
           {/* Hover handlers repeated here so moving the pointer from the
               button down into the (separately positioned) picker doesn't
               trip the close timer before it arrives. */}
-          <div onMouseEnter={openPickerOnHover} onMouseLeave={closePickerOnHoverEnd}>
+          <div
+            ref={pickerOptionsRef}
+            onPointerEnter={openPickerOnHover}
+            onPointerLeave={closePickerOnHoverEnd}
+            onFocusCapture={cancelPickerClose}
+            onBlurCapture={() => {
+              if (!isPointerOverPicker.current) schedulePickerClose();
+            }}
+          >
             <IconPicker
               selectedIcon={iconType}
               onSelectIcon={(icon) => {
                 onIconChange(catIndex, itemIndex, icon);
-                setIsPickerOpen(false);
+                closePicker(true);
               }}
               isOpen={isPickerOpen}
               mode="fill"
-              onClose={() => setIsPickerOpen(false)}
+              onClose={() => closePicker(pickerWrapperRef.current?.contains(document.activeElement))}
               parentRef={pickerWrapperRef}
-              autoFocus={pickerAutoFocus}
+              autoFocus={pickerOpenMode === "explicit"}
             />
           </div>
         </div>

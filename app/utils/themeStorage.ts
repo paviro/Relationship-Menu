@@ -9,6 +9,8 @@ export const DEFAULT_THEME: ThemePreferences = {
   vision: 'default',
   contrast: 'normal',
   contrastExplicit: false,
+  hoverToOpenPicker: false,
+  keyboardFillEnabled: true,
 };
 
 /**
@@ -66,7 +68,12 @@ export function getThemePreferences(): ThemePreferences {
       ? parsed.contrastExplicit
       : false;
 
-    return { colorMode, vision, contrast, contrastExplicit };
+    const hoverToOpenPicker = parsed.hoverToOpenPicker === true;
+    const keyboardFillEnabled = typeof parsed.keyboardFillEnabled === 'boolean'
+      ? parsed.keyboardFillEnabled
+      : true;
+
+    return { colorMode, vision, contrast, contrastExplicit, hoverToOpenPicker, keyboardFillEnabled };
   } catch (error) {
     console.error('Error reading theme preferences:', error);
     return DEFAULT_THEME;

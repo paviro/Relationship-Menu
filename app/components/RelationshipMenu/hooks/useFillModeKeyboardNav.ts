@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MenuCategory, MenuMode, RatingValue } from '../../../types';
 
 export type ActiveCell = { catIndex: number; itemIndex: number };
@@ -6,6 +6,7 @@ export type ActiveCell = { catIndex: number; itemIndex: number };
 interface UseFillModeKeyboardNavOptions {
   menu: MenuCategory[];
   mode: MenuMode;
+  enabled?: boolean;
   onIconChange: (catIndex: number, itemIndex: number, newIcon: string | null) => void;
 }
 
@@ -42,31 +43,30 @@ const cellKey = (catIndex: number, itemIndex: number) => `${catIndex}-${itemInde
 export function useFillModeKeyboardNav({
   menu,
   mode,
+  enabled = true,
   onIconChange,
 }: UseFillModeKeyboardNavOptions): UseFillModeKeyboardNavResult {
-  // `activeCell` is sticky (drives roving tabIndex: it's "the row focus should
-  // resume at", and must survive focus moving away, e.g. into a note editor or
-  // a closing picker unmounting its focused button) — kept as state since it
-  // affects render (tabIndex). `hoveredCellRef` is a plain ref (hover never
-  // affects render) used as the fallback when nothing is currently focused.
-  //
-  // Note: which row is *currently* focused is deliberately NOT tracked via
-  // onBlur/state. When the IconPicker closes (Escape), it unmounts its
-  // auto-focused option button; browsers don't reliably bubble a focusout for
-  // a focused node that's being removed, so a blur-tracked "is focused" ref
-  // can get stuck true after focus has actually silently moved to <body>. The
-  // keydown handler instead re-checks document.activeElement live, which is
-  // always correct.
+  // Remember where Tab should resume, but use live DOM focus for shortcuts.
+  // Hover provides an entry point; it never overrides an already focused row.
   const [activeCell, setActiveCell] = useState<ActiveCell | null>(null);
   const rowRefs = useRef(new Map<string, HTMLDivElement>());
   const hoveredCellRef = useRef<ActiveCell | null>(null);
 
-  const flatList = useMemo<ActiveCell[]>(
-    () => menu.flatMap((category, catIndex) => category.items.map((_, itemIndex) => ({ catIndex, itemIndex }))),
-    [menu]
+  // Edit handlers mutate the menu arrays in place, so their identity cannot
+  // be used to cache the current navigation positions.
+  const flatList: ActiveCell[] = menu.flatMap((category, catIndex) =>
+    category.items.map((_, itemIndex) => ({ catIndex, itemIndex }))
   );
 
   const firstCell = flatList[0] ?? null;
+  const validActiveCell = activeCell && menu[activeCell.catIndex]?.items[activeCell.itemIndex]
+    ? activeCell
+    : null;
+  if (activeCell && !validActiveCell) {
+    // Forget removed positions so adding another item cannot revive them.
+    setActiveCell(null);
+  }
+  const tabCell = validActiveCell ?? firstCell;
 
   const findFlatIndex = useCallback(
     (cell: ActiveCell) => flatList.findIndex((c) => c.catIndex === cell.catIndex && c.itemIndex === cell.itemIndex),
@@ -86,24 +86,45 @@ export function useFillModeKeyboardNav({
     [flatList, findFlatIndex]
   );
 
-  const jumpPrevCategory = useCallback(
-    (cell: ActiveCell): ActiveCell | undefined => {
-      for (let c = cell.catIndex - 1; c >= 0; c--) {
-        if (menu[c].items.length > 0) return { catIndex: c, itemIndex: 0 };
-      }
-      return firstCell ?? undefined;
-    },
-    [menu, firstCell]
-  );
+  const horizontalItem = useCallback(
+    (cell: ActiveCell, direction: -1 | 1): ActiveCell | undefined => {
+      const row = rowRefs.current.get(cellKey(cell.catIndex, cell.itemIndex));
+      const category = row?.closest<HTMLElement>('[data-menu-category]');
+      if (!row || !category?.parentElement) return;
+      const origin = category.getBoundingClientRect();
+      if (origin.width <= 0) return;
 
-  const jumpNextCategory = useCallback(
-    (cell: ActiveCell): ActiveCell | undefined => {
-      for (let c = cell.catIndex + 1; c < menu.length; c++) {
-        if (menu[c].items.length > 0) return { catIndex: c, itemIndex: 0 };
+      // Only consider actual neighboring columns in this grid row. This also
+      // makes horizontal navigation a no-op in the single-column layout.
+      let targetCategory: HTMLElement | undefined;
+      let nearestDistance = Infinity;
+      for (const sibling of category.parentElement.children) {
+        if (!(sibling instanceof HTMLElement) || sibling === category || !sibling.hasAttribute('data-menu-category')) continue;
+        const rect = sibling.getBoundingClientRect();
+        if (rect.width <= 0 || Math.abs(rect.top - origin.top) > 1) continue;
+        const distance = direction === 1 ? rect.left - origin.right : origin.left - rect.right;
+        if (distance >= 0 && distance < nearestDistance) {
+          nearestDistance = distance;
+          targetCategory = sibling;
+        }
       }
-      return flatList[flatList.length - 1];
+      if (!targetCategory) return;
+      const catIndex = Number(targetCategory.dataset.menuCategory);
+      if (!menu[catIndex]?.items.length) return;
+
+      const rowRect = row.getBoundingClientRect();
+      const centerY = rowRect.top + rowRect.height / 2;
+      for (let itemIndex = 0; itemIndex < menu[catIndex].items.length; itemIndex++) {
+        const rect = rowRefs.current.get(cellKey(catIndex, itemIndex))?.getBoundingClientRect();
+        if (rect && rect.height > 0 && centerY >= rect.top && centerY < rect.bottom) {
+          return { catIndex, itemIndex };
+        }
+      }
+      // The adjacent category can be shorter or its header taller. Its first
+      // item is the fallback only when no item occupies the current height.
+      return { catIndex, itemIndex: 0 };
     },
-    [menu, flatList]
+    [menu]
   );
 
   const focusRow = useCallback((cell: ActiveCell) => {
@@ -111,10 +132,13 @@ export function useFillModeKeyboardNav({
   }, []);
 
   useEffect(() => {
-    if (mode !== 'fill') return;
+    if (mode !== 'fill' || !enabled) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.defaultPrevented || e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const key = e.key;
+      const lowerKey = key.length === 1 ? key.toLowerCase() : key;
 
       const active = document.activeElement;
       // Only defer to the icon picker's own keyboard handling when focus is
@@ -126,22 +150,62 @@ export function useFillModeKeyboardNav({
       let cell: ActiveCell | null = null;
       if (active instanceof HTMLElement) {
         const isRowWrapper = active.hasAttribute('data-item-row');
-        const isTextInput = active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable;
+        const isTextInput = active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' ||
+          active.tagName === 'SELECT' || active.isContentEditable;
         if (isTextInput && !isRowWrapper) return;
 
         const focusedRow = active.closest('[data-item-row]');
         const match = focusedRow instanceof HTMLElement ? focusedRow.id.match(ROW_ID_PATTERN) : null;
+        if (match && isRowWrapper && e.key === 'Enter') {
+          const noteTrigger = active.querySelector<HTMLElement>('[data-note-trigger]');
+          if (noteTrigger) {
+            e.preventDefault();
+            noteTrigger.click();
+          }
+          return;
+        }
+        if (match && e.key === 'Escape') {
+          e.preventDefault();
+          active.blur();
+          return;
+        }
         if (match) cell = { catIndex: Number(match[1]), itemIndex: Number(match[2]) };
       }
-      if (!cell) cell = hoveredCellRef.current;
-      if (!cell) return;
-
-      const key = e.key;
-      const lowerKey = key.length === 1 ? key.toLowerCase() : key;
+      if (!cell) {
+        const hovered = hoveredCellRef.current;
+        const validHovered = hovered && menu[hovered.catIndex]?.items[hovered.itemIndex] ? hovered : null;
+        if (['h', 'j', 'k', 'l'].includes(lowerKey)) {
+          // The first press selects the hovered row rather than stepping past
+          // it. With no hover, start at the topmost visible row, then leftmost.
+          let start = validHovered;
+          if (!start) {
+            const visibleRows = flatList.flatMap((candidate) => {
+              const rect = rowRefs.current.get(cellKey(candidate.catIndex, candidate.itemIndex))?.getBoundingClientRect();
+              if (!rect || rect.height <= 0 || rect.width <= 0 || rect.bottom <= 0 ||
+                rect.top >= window.innerHeight || rect.right <= 0 || rect.left >= window.innerWidth) return [];
+              return [{ cell: candidate, top: Math.max(0, rect.top), left: rect.left }];
+            });
+            visibleRows.sort((a, b) => a.top - b.top || a.left - b.left);
+            start = visibleRows[0]?.cell ?? firstCell;
+          }
+          if (start) {
+            e.preventDefault();
+            focusRow(start);
+          }
+          return;
+        }
+        // Keep hover rating shortcuts, but leave arrows available for normal
+        // page scrolling until keyboard navigation has actually started.
+        if (!(key in RATING_DIGIT_MAP) && !(lowerKey in RATING_LETTER_MAP)) return;
+        cell = validHovered;
+        if (!cell) return;
+      }
 
       const ratingValue = key in RATING_DIGIT_MAP ? RATING_DIGIT_MAP[key] : RATING_LETTER_MAP[lowerKey];
       if (ratingValue !== undefined) {
         e.preventDefault();
+        // A held key is one rating action, not repeated intentional toggles.
+        if (e.repeat) return;
         const item = menu[cell.catIndex]?.items[cell.itemIndex];
         if (!item || item.icon === 'talk') return;
         const current = item.icon === undefined ? null : item.icon;
@@ -152,8 +216,8 @@ export function useFillModeKeyboardNav({
       let target: ActiveCell | undefined;
       if (key === 'ArrowDown' || lowerKey === 'j') target = nextItem(cell);
       else if (key === 'ArrowUp' || lowerKey === 'k') target = prevItem(cell);
-      else if (key === 'ArrowLeft' || lowerKey === 'h') target = jumpPrevCategory(cell);
-      else if (key === 'ArrowRight' || lowerKey === 'l') target = jumpNextCategory(cell);
+      else if (key === 'ArrowLeft' || lowerKey === 'h') target = horizontalItem(cell, -1);
+      else if (key === 'ArrowRight' || lowerKey === 'l') target = horizontalItem(cell, 1);
       else return;
 
       e.preventDefault();
@@ -162,14 +226,13 @@ export function useFillModeKeyboardNav({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, menu, onIconChange, nextItem, prevItem, jumpPrevCategory, jumpNextCategory, focusRow]);
+  }, [mode, enabled, menu, onIconChange, nextItem, prevItem, horizontalItem, focusRow, flatList, firstCell]);
 
   const isActive = useCallback(
     (catIndex: number, itemIndex: number) => {
-      if (activeCell) return activeCell.catIndex === catIndex && activeCell.itemIndex === itemIndex;
-      return firstCell !== null && firstCell.catIndex === catIndex && firstCell.itemIndex === itemIndex;
+      return enabled && tabCell !== null && tabCell.catIndex === catIndex && tabCell.itemIndex === itemIndex;
     },
-    [activeCell, firstCell]
+    [enabled, tabCell]
   );
 
   const registerRowRef = useCallback(
@@ -191,9 +254,7 @@ export function useFillModeKeyboardNav({
 
   const onRowMouseLeave = useCallback((catIndex: number, itemIndex: number) => {
     const current = hoveredCellRef.current;
-    if (current && current.catIndex === catIndex && current.itemIndex === itemIndex) {
-      hoveredCellRef.current = null;
-    }
+    if (current?.catIndex === catIndex && current.itemIndex === itemIndex) hoveredCellRef.current = null;
   }, []);
 
   return { isActive, registerRowRef, onRowFocus, onRowMouseEnter, onRowMouseLeave };

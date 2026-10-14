@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { IconSliders, IconX } from '../icons';
 import { useTheme } from '../ThemeProvider';
@@ -99,8 +99,47 @@ function RadioOptionGroup<T extends string>({
   );
 }
 
+function PreferenceSwitch({ id, label, description, checked, onChange }: {
+  id: string;
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <label className={`hc-option flex items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+      checked
+        ? 'hc-option-active border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
+        : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+    }`}>
+      <div>
+        <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">{label}</span>
+        <span id={`${id}-desc`} className="block text-xs text-gray-500 dark:text-gray-400">{description}</span>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        aria-describedby={`${id}-desc`}
+        onClick={onChange}
+        className={`settings-switch relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--main-text-color)] focus:ring-offset-2 ${
+          checked ? 'bg-[var(--main-text-color)]' : 'bg-gray-300'
+        }`}
+      >
+        <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+          checked ? 'translate-x-5' : 'translate-x-0'
+        }`} />
+      </button>
+    </label>
+  );
+}
+
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { preferences, setPreferences } = useTheme();
+  const [activeTab, setActiveTab] = useState<'general' | 'theme'>('general');
+  const generalTabRef = useRef<HTMLButtonElement>(null);
+  const themeTabRef = useRef<HTMLButtonElement>(null);
   const { containerRef } = useModalA11y({
     isOpen,
     onDismiss: onClose,
@@ -155,7 +194,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <IconSliders className="h-5 w-5 text-[var(--main-text-color)]" aria-hidden="true" />
               </div>
               <h2 id="settings-modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Theme Settings
+                Settings
               </h2>
             </div>
             <button
@@ -166,65 +205,105 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <IconX className="h-5 w-5" />
             </button>
           </div>
-          <div className="border-b border-gray-200 dark:border-gray-700 -mx-4 sm:-mx-6 mb-6"></div>
-
-          {/* Color Mode Section */}
-          <RadioOptionGroup
-            legend="Color Mode"
-            name="colorMode"
-            options={COLOR_MODE_OPTIONS}
-            value={preferences.colorMode}
-            onChange={handleColorModeChange}
-          />
-
-          {/* Vision Theme Section */}
-          <RadioOptionGroup
-            legend="Color Vision"
-            name="vision"
-            options={VISION_OPTIONS}
-            value={preferences.vision}
-            onChange={handleVisionChange}
-          />
-
-          {/* High Contrast Toggle */}
-          <fieldset>
-            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Contrast
-            </legend>
-            <label
-              className={`hc-option flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                preferences.contrast === 'high'
-                  ? 'hc-option-active border-[var(--main-text-color)] bg-[var(--main-bg-color)]/10'
-                  : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-              }`}
-            >
-              <div>
-                <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Increase contrast
-                </span>
-                <span id="contrast-desc" className="block text-xs text-gray-500 dark:text-gray-400">
-                  Enhanced visibility for text and UI elements
-                </span>
-              </div>
+          <div
+            role="tablist"
+            aria-label="Settings sections"
+            className="flex gap-6 border-b border-gray-200 dark:border-gray-700 -mx-4 sm:-mx-6 px-4 sm:px-6 mb-6"
+            onKeyDown={(event) => {
+              let nextTab: 'general' | 'theme';
+              if (event.key === 'Home') nextTab = 'general';
+              else if (event.key === 'End') nextTab = 'theme';
+              else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                nextTab = activeTab === 'general' ? 'theme' : 'general';
+              } else return;
+              event.preventDefault();
+              setActiveTab(nextTab);
+              (nextTab === 'general' ? generalTabRef : themeTabRef).current?.focus();
+            }}
+          >
+            {(['general', 'theme'] as const).map((tab) => (
               <button
+                key={tab}
+                ref={tab === 'general' ? generalTabRef : themeTabRef}
+                id={`settings-${tab}-tab`}
                 type="button"
-                role="switch"
-                aria-checked={preferences.contrast === 'high'}
-                aria-label="Increase contrast"
-                aria-describedby="contrast-desc"
-                onClick={() => handleContrastChange(preferences.contrast === 'high' ? 'normal' : 'high')}
-                className={`settings-switch relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--main-text-color)] focus:ring-offset-2 ${
-                  preferences.contrast === 'high' ? 'bg-[var(--main-text-color)]' : 'bg-gray-300'
+                role="tab"
+                aria-selected={activeTab === tab}
+                aria-controls={`settings-${tab}-panel`}
+                tabIndex={activeTab === tab ? 0 : -1}
+                onClick={() => setActiveTab(tab)}
+                className={`-mb-px border-b-2 px-1 pb-3 pt-1 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--main-text-color)] ${
+                  activeTab === tab
+                    ? 'border-[var(--main-text-color)] text-[var(--main-text-color)]'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                 }`}
               >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    preferences.contrast === 'high' ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
+                {tab === 'general' ? 'General' : 'Theme'}
               </button>
-            </label>
-          </fieldset>
+            ))}
+          </div>
+
+          {activeTab === 'theme' && (
+            <div role="tabpanel" id="settings-theme-panel" aria-labelledby="settings-theme-tab">
+              {/* Color Mode Section */}
+              <RadioOptionGroup
+                legend="Color Mode"
+                name="colorMode"
+                options={COLOR_MODE_OPTIONS}
+                value={preferences.colorMode}
+                onChange={handleColorModeChange}
+              />
+
+              {/* Vision Theme Section */}
+              <RadioOptionGroup
+                legend="Color Vision"
+                name="vision"
+                options={VISION_OPTIONS}
+                value={preferences.vision}
+                onChange={handleVisionChange}
+              />
+
+              {/* High Contrast Toggle */}
+              <fieldset>
+                <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Contrast
+                </legend>
+                <PreferenceSwitch
+                  id="contrast"
+                  label="Increase contrast"
+                  description="Enhanced visibility for text and UI elements"
+                  checked={preferences.contrast === 'high'}
+                  onChange={() => handleContrastChange(preferences.contrast === 'high' ? 'normal' : 'high')}
+                />
+              </fieldset>
+            </div>
+          )}
+
+          {activeTab === 'general' && (
+            <div role="tabpanel" id="settings-general-panel" aria-labelledby="settings-general-tab">
+              <fieldset>
+                <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Filling menus
+                </legend>
+                <div className="space-y-3">
+                  <PreferenceSwitch
+                    id="keyboard-fill"
+                    label="Keyboard fill"
+                    description="Start with Tab or H/J/K/L. Use arrows or H/J/K/L to move, 1–5 to rate, Enter to edit notes, and Esc to exit."
+                    checked={preferences.keyboardFillEnabled !== false}
+                    onChange={() => setPreferences({ ...preferences, keyboardFillEnabled: preferences.keyboardFillEnabled === false })}
+                  />
+                  <PreferenceSwitch
+                    id="hover-picker"
+                    label="Open rating picker on hover"
+                    description="Show rating choices when your pointer hovers over a rating button in Fill mode."
+                    checked={preferences.hoverToOpenPicker === true}
+                    onChange={() => setPreferences({ ...preferences, hoverToOpenPicker: !preferences.hoverToOpenPicker })}
+                  />
+                </div>
+              </fieldset>
+            </div>
+          )}
 
           {/* Info text */}
           <p className="mt-6 text-xs text-gray-500 dark:text-gray-400 text-center">

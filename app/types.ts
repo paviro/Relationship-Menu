@@ -71,4 +71,7 @@ export type ThemePreferences = {
   contrast: ContrastLevel;
   // When false/absent, contrast follows the system prefers-contrast setting.
   contrastExplicit?: boolean;
+  // Browser interaction preferences stored alongside the existing theme settings.
+  hoverToOpenPicker?: boolean;
+  keyboardFillEnabled?: boolean;
 };
