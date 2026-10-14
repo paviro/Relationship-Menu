@@ -134,7 +134,8 @@ describe('fill mode keyboard navigation', () => {
     expect(document.activeElement).toBe(screen.getByText('Two'));
   });
 
-  it.each(['1', 'y'])('ignores held %s but preserves deliberate second-press clearing', (key) => {
+  it('ignores held rating keys but preserves deliberate second-press clearing', () => {
+    const key = '1';
     const { menu, onIconChange } = fixture();
     focus('One');
     fireEvent.keyDown(document.activeElement!, { key });
@@ -155,11 +156,11 @@ describe('fill mode keyboard navigation', () => {
     expect(document.activeElement).toBe(screen.getByText('Three'));
   });
 
-  it('supports explicit rating clearing', () => {
+  it.each(['0', 'r', 'R'])('supports explicit rating clearing with %s', (key) => {
     const { onIconChange } = fixture();
     focus('Three');
     fireEvent.keyDown(document.activeElement!, { key: '2' });
-    fireEvent.keyDown(document.activeElement!, { key: '0' });
+    fireEvent.keyDown(document.activeElement!, { key });
     expect(onIconChange).toHaveBeenLastCalledWith(2, 0, null);
   });
 

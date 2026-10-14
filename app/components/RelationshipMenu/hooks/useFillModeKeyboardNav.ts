@@ -20,21 +20,13 @@ interface UseFillModeKeyboardNavResult {
 
 const ROW_ID_PATTERN = /^item-row-(\d+)-(\d+)$/;
 
-const RATING_DIGIT_MAP: Record<string, RatingValue> = {
+const RATING_KEY_MAP: Record<string, RatingValue> = {
   '1': 'must',
   '2': 'like',
   '3': 'maybe',
   '4': 'prefer-not',
   '5': 'off-limit',
   '0': null,
-};
-
-const RATING_LETTER_MAP: Record<string, RatingValue> = {
-  y: 'must',
-  w: 'like',
-  m: 'maybe',
-  n: 'prefer-not',
-  o: 'off-limit',
   r: null,
 };
 
@@ -196,12 +188,12 @@ export function useFillModeKeyboardNav({
         }
         // Keep hover rating shortcuts, but leave arrows available for normal
         // page scrolling until keyboard navigation has actually started.
-        if (!(key in RATING_DIGIT_MAP) && !(lowerKey in RATING_LETTER_MAP)) return;
+        if (!(lowerKey in RATING_KEY_MAP)) return;
         cell = validHovered;
         if (!cell) return;
       }
 
-      const ratingValue = key in RATING_DIGIT_MAP ? RATING_DIGIT_MAP[key] : RATING_LETTER_MAP[lowerKey];
+      const ratingValue = RATING_KEY_MAP[lowerKey];
       if (ratingValue !== undefined) {
         e.preventDefault();
         // A held key is one rating action, not repeated intentional toggles.
